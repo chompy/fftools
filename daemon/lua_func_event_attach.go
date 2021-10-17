@@ -22,11 +22,16 @@ func luaListenCallback(event *eventDispatch) {
 	callback := event.Listener.Data.([]interface{})[1].(*lua.LFunction)
 	logLuaDebug(L, "Recieved event.", event)
 	argCount := 0
-	var arg *lua.LTable = nil
+	var arg lua.LValue = nil
 	switch event.Data.(type) {
 	case LuaEncodable:
 		{
 			arg = event.Data.(LuaEncodable).ToLua()
+			break
+		}
+	case string:
+		{
+			arg = lua.LString(event.Data.(string))
 			break
 		}
 	}

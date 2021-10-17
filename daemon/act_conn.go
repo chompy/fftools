@@ -54,6 +54,15 @@ func actListenUDP() error {
 				eventListenerDispatch("act:combatant", combatant)
 				break
 			}
+		case DataTypeEncounter:
+			{
+				encounter := Encounter{}
+				if err := encounter.FromBytes(buf[:]); err != nil {
+					break
+				}
+				eventListenerDispatch("act:encounter", encounter)
+				break
+			}
 		}
 
 	}

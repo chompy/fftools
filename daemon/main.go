@@ -3,7 +3,7 @@ package main
 func main() {
 
 	// init
-	eventListenerReset()
+	//eventListenerReset()
 
 	for _, name := range luaGetEnabledScripts() {
 		ls, err := luaLoadScript(name)

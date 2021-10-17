@@ -1,4 +1,17 @@
+local is_tea_zone = false
+
+local function on_zone(z)
+    is_tea_zone = false
+    if z == "The Epic Of Alexander (Ultimate)" then
+        is_tea_zone = true
+        log_info("Entered TEA.")
+    end
+end
+
 local function on_log(l)
+    if not is_tea_zone then
+        return
+    end
     local matches = regex_match("1B:.*:(.*):0000:.*:(00[4-5][F0-6]):", l.log_line)
     if matches == nil or matches[2] == nil then
         return
@@ -9,9 +22,9 @@ local function on_log(l)
             act_say(number)
         end
     end
-
 end
 
 function init()
+    event_attach("zone", on_zone)
     event_attach("act:log_line", on_log)
 end

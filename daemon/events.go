@@ -12,7 +12,7 @@ type eventListener struct {
 	Data     interface{}
 }
 
-var eventListeners = []*eventListener{}
+var eventListeners = make([]*eventListener, 0)
 
 func eventListenerReset() {
 	eventListeners = make([]*eventListener, 0)
@@ -46,11 +46,13 @@ func eventListenerDispatch(event string, data interface{}) {
 	}
 	logDebug("Dispatch event.", eventDispatch{Event: event, Data: data})
 	for _, listener := range eventListeners {
-		ed := &eventDispatch{
-			Event:    event,
-			Data:     data,
-			Listener: listener,
+		if listener.Event == event {
+			ed := &eventDispatch{
+				Event:    event,
+				Data:     data,
+				Listener: listener,
+			}
+			listener.Callback(ed)
 		}
-		listener.Callback(ed)
 	}
 }

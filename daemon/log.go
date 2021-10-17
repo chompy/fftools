@@ -16,7 +16,7 @@ func logWarn(msg string, args ...interface{}) {
 }
 
 func logDebug(msg string, data interface{}) {
-	log.Println("[DEBUG] "+msg, data)
+	//log.Println("[DEBUG] "+msg, data)
 }
 
 func logLuaInfo(L *lua.LState, msg string, args ...interface{}) {
