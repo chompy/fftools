@@ -5,7 +5,7 @@ func main() {
 	// init
 	eventListenerReset()
 
-	for _, name := range luaGetAvailableScripts() {
+	for _, name := range luaGetEnabledScripts() {
 		ls, err := luaLoadScript(name)
 		if err != nil {
 			panic(err)
@@ -13,5 +13,5 @@ func main() {
 		ls.init()
 	}
 
-	ListenUDP()
+	actListenUDP()
 }

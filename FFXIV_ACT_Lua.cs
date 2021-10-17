@@ -47,10 +47,21 @@ namespace ACT_Plugin
         const byte DATA_TYPE_LOG_LINE = 5;                      // Data type, log line
         const byte DATA_TYPE_FLAG = 99;                         // Data type, flag
 
+        const byte DATA_TYPE_SCRIPTS_AVAILABLE = 201;           // Data type, lua scripts available
+        const byte DATA_TYPE_SCRIPTS_ENABLED = 202;             // Data type, lua scripts enabled
+        const byte DATA_TYPE_ACT_SAY = 203;                     // Data type, speak with TTS
+        const byte DATA_TYPE_ACT_END = 204;                     // Data type, flag to end encounter
+
+        const long TTS_TIMEOUT = 3000;                          // Time in miliseconds to timeout TTS
+        
         private Label lblStatus;                                // The status label that appears in ACT's Plugin tab
         private UdpClient udpClient;                            // UDP client used to send data
         private UdpClient udpListener;                          // UDP listener used to recv data
+        private IPEndPoint udpEndpoint;                         // UDP address
         Thread listenThread;                                    // Thread for listening for incoming data
+        private long lastTTSTime = 0;                           // Last time TTS was timed out
+        private string[] availableScripts;
+        private string[] enabledScripts;
 
         public FFActLua()
         {
@@ -118,9 +129,10 @@ namespace ACT_Plugin
             if (udpClient != null) {
                 udpClient.Close();
             }
+            udpEndpoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), DAEMON_PORT);
             udpClient = new UdpClient();
             try {
-                udpClient.Connect("127.0.0.1", DAEMON_PORT);
+                udpClient.Connect(udpEndpoint);
             } catch (System.Net.Sockets.SocketException e) {
                 lblStatus.Text = "ERROR: " + e.Message;
             }
@@ -141,23 +153,37 @@ namespace ACT_Plugin
 
         void udpListen()
         {
-            IPEndPoint groupEP = new IPEndPoint(IPAddress.Any, DAEMON_PORT);
-            try
+            while(true)
             {
-                while(true)
-                {
-                    byte[] bytes = udpClient.Receive(ref groupEP);
-                    lblStatus.Text = "TEST123";
+                try {
+                    byte[] bytes = udpClient.Receive(ref udpEndpoint);
+                    switch (bytes[0]) {
+                        case DATA_TYPE_ACT_SAY: {
+                            string text = System.Text.Encoding.UTF8.GetString(bytes, 1, bytes.Length-1);
+                            ttsSay(text);
+                            break;
+                        }
+                        case DATA_TYPE_ACT_END: {
+                            ActGlobals.oFormActMain.EndCombat(true);
+                            break;
+                        }
+                        case DATA_TYPE_SCRIPTS_AVAILABLE: {
+                            string valStr = System.Text.Encoding.UTF8.GetString(bytes, 1, bytes.Length-1);
+                            availableScripts = valStr.Split(',');
+                            break;
+                        }
+                        case DATA_TYPE_SCRIPTS_ENABLED: {
+                            string valStr = System.Text.Encoding.UTF8.GetString(bytes, 1, bytes.Length-1);
+                            enabledScripts = valStr.Split(',');
+                            break;
+                        }
+                    }
+
+                } catch (SocketException e) {
+                    lblStatus.Text = "ERROR: " + e.Message;
                 }
             }
-            catch (SocketException e)
-            {
-                lblStatus.Text = "ERROR: " + e.Message;
-            }
-            finally
-            {
-                udpListener.Close();
-            }
+            //udpListener.Close();
         }
 
         void prepareDateTime(ref List<Byte> sendData, DateTime value) 
@@ -269,6 +295,15 @@ namespace ACT_Plugin
             prepareString(ref sendData, logInfo.logLine);
             // send
             sendUdp(ref sendData);
+        }
+
+        void ttsSay(string text)
+        {
+            long now = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+            if (lastTTSTime == 0 || now - lastTTSTime > TTS_TIMEOUT) {
+                lastTTSTime = now;
+                ActGlobals.oFormActMain.TTS(text);
+            }
         }
 
     }

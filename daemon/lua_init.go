@@ -9,7 +9,7 @@ import (
 	lua "github.com/yuin/gopher-lua"
 )
 
-const luaScriptPath = "scripts"
+const luaScriptPath = "../scripts"
 const luaGlobalScriptName = "_script_name"
 
 var luaValidScriptNames = []string{"main.lua", "init.lua"}
@@ -45,7 +45,22 @@ func luaGetAvailableScripts() []string {
 }
 
 func luaGetEnabledScripts() []string {
-	return []string{}
+	available := luaGetAvailableScripts()
+	enabled, err := configLoadScriptsEnabled()
+	if err != nil {
+		logWarn(err.Error())
+		return []string{}
+	}
+	out := make([]string, 0)
+	for _, enabledScript := range enabled {
+		for _, availableScript := range available {
+			if enabledScript == availableScript {
+				out = append(out, availableScript)
+				break
+			}
+		}
+	}
+	return out
 }
 
 func luaGetPathToScript(name string) (string, error) {

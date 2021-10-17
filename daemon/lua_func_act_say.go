@@ -5,11 +5,14 @@ import (
 )
 
 func luaFuncActSay(L *lua.LState) int {
-	arg1Val := L.ToString(1)
-	if arg1Val == "" {
+	text := L.ToString(1)
+	if text == "" {
 		return 0
 	}
-	logLuaInfo(L, "ACT TTS Say '%s.'", arg1Val)
+	logLuaInfo(L, "ACT TTS Say '%s.'", text)
+	if err := actSay(text); err != nil {
+		logLuaWarn(L, err.Error())
+	}
 	return 0
 }
 
