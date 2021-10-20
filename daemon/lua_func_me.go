@@ -19,7 +19,7 @@ func luaFuncMe(L *lua.LState) int {
 	t := &lua.LTable{}
 	t.RawSetString("name", lua.LString(localPlayerName))
 	t.RawSetString("job", lua.LString(localPlayerCombatant.Job))
-	t.RawSetString("id", lua.LNumber(localPlayerCombatant.ID))
+	t.RawSetString("id", lua.LNumber(localPlayerID))
 	L.Push(t)
 	return 1
 }

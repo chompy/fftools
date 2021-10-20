@@ -18,13 +18,13 @@ local function on_log(l)
     end
     if matches[2] == me().name then
         local number = tonumber(matches[3], 16) - 78
-        if number > 1 and number < 9 then
+        if number > 0 and number < 9 then
             act_say(number)
         end
     end
 end
 
 function init()
-    event_attach("zone", on_zone)
+    event_attach("act:encounter:zone", on_zone)
     event_attach("act:log_line", on_log)
 end
