@@ -158,7 +158,6 @@ var logShiftValues = [...]int{0x3E, 0x113, 0x213, 0x313}
 // ParsedLogLine - Data retrieved by parsing a log line
 type ParsedLogLine struct {
 	Type              int
-	GameLogType       int
 	Raw               string
 	AttackerID        int
 	AttackerName      string
@@ -383,40 +382,6 @@ func ParseLogLine(logLine LogLine) (ParsedLogLine, error) {
 		}
 	case LogTypeGameLog:
 		{
-			if len(fields) <= 2 {
-				break
-			}
-			// get Log message ID
-			gameLogType, err := hexToInt(fields[1])
-			if err != nil {
-				return data, err
-			}
-			data.GameLogType = int(gameLogType)
-			// player chat message, ignore
-			if data.GameLogType <= LogMsgChatID && data.GameLogType != LogMsgIDEcho {
-				data.Raw = ""
-				break
-			}
-			switch data.GameLogType {
-			// try to strip out world name from message
-			case LogMsgIDCharacterWorldName:
-				{
-					re, err := regexp.Compile(`102b:([a-zA-Z'\-]*) ([A-Z'])([a-z'\-]*)([A-Z])([a-z]*)`)
-					if err != nil {
-						return data, err
-					}
-					match := re.FindStringSubmatch(logLineString)
-					if len(match) < 6 {
-						break
-					}
-					attackerName := fmt.Sprintf("%s %s%s", match[1], match[2], match[3])
-					worldName := fmt.Sprintf("%s%s", match[4], match[5])
-					data.AttackerName = attackerName
-					// special case, target name is world name
-					data.TargetName = worldName
-					break
-				}
-			}
 			break
 		}
 	case LogTypeChangePrimaryPlayer:
@@ -553,40 +518,6 @@ func (l ParsedLogLine) TypeString() string {
 	return "unknown"
 }
 
-func (l ParsedLogLine) GameLogTypeString() string {
-	switch l.GameLogType {
-	case LogMsgIDCharacterWorldName:
-		{
-			return "msg_world_name"
-		}
-	case LogMsgIDCastLot:
-		{
-			return "cast_lot"
-		}
-	case LogMsgIDCompletionTime:
-		{
-			return "completion_time"
-		}
-	case LogMsgIDCountdown[0], LogMsgIDCountdown[1], LogMsgIDCountdown[2]:
-		{
-			return "countdown"
-		}
-	case LogMsgIDEcho:
-		{
-			return "echo"
-		}
-	case LogMsgIDObtainItem:
-		{
-			return "obtain_item"
-		}
-	case LogMsgPopUpBubble:
-		{
-			return "popup_bubble"
-		}
-	}
-	return "unknown"
-}
-
 func (l ParsedLogLine) FlagTypeString() []string {
 	out := make([]string, 0)
 	for _, flag := range l.Flags {
@@ -639,7 +570,6 @@ func (l ParsedLogLine) FlagTypeString() []string {
 func (l ParsedLogLine) ToLua() *lua.LTable {
 	t := &lua.LTable{}
 	t.RawSetString("type", lua.LString(l.TypeString()))
-	t.RawSetString("game_log_type", lua.LString(l.GameLogTypeString()))
 	t.RawSetString("raw", lua.LString(l.Raw))
 	t.RawSetString("time", lua.LNumber(l.Time.Unix()))
 	t.RawSetString("attacker_id", lua.LNumber(l.AttackerID))
