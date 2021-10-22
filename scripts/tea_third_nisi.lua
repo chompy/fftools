@@ -49,3 +49,10 @@ function init()
     event_attach("act:encounter:change", on_encounter_change)
     event_attach("act:log_line", on_log)
 end
+
+function info()
+    return {
+        name = "[TEA] Third Nisi",
+        desc = "Calls the player's partner for third Nisi pass in The Epic Of Alexander (Ultimate)."
+    }
+end

@@ -28,3 +28,10 @@ function init()
     event_attach("act:encounter:zone", on_zone)
     event_attach("act:log_line", on_log)
 end
+
+function info()
+    return {
+        name = "[TEA] Limit Cut Number",
+        desc = "Calls the player's limit cut number in The Epic Of Alexander (Ultimate)."
+    }
+end

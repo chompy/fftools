@@ -11,6 +11,25 @@ func luaFuncEventDetach(L *lua.LState) int {
 	return 0
 }
 
+func luaEventDetachAllForState(L *lua.LState) {
+	detachList := make([]*eventListener, 0)
+	for _, eventListener := range eventListeners {
+		switch eventListener.Data.(type) {
+		case []interface{}:
+			{
+				data := eventListener.Data.([]interface{})
+				if L == data[0].(*lua.LState) {
+					detachList = append(detachList, eventListener)
+				}
+				break
+			}
+		}
+	}
+	for _, eventListener := range detachList {
+		eventListenerDetach(eventListener)
+	}
+}
+
 func init() {
 	luaRegisterFunction("event_detach", luaFuncEventDetach)
 }
