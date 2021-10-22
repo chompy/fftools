@@ -62,6 +62,9 @@ const LogTypeHPPercent = 0x0D
 // LogTypeFFLPCombatant - Log type identifier, custom combatant data
 const LogTypeFFLPCombatant = 0x99
 
+// LogTypeChangePrimaryPlayer - Log type identifier, change player
+const LogTypeChangePrimaryPlayer = 0x02
+
 // LogFieldType - Log field identifier, message type
 const LogFieldType = 0
 
@@ -416,7 +419,20 @@ func ParseLogLine(logLine LogLine) (ParsedLogLine, error) {
 			}
 			break
 		}
-
+	case LogTypeChangePrimaryPlayer:
+		{
+			re, err := regexp.Compile(`Changed primary player to (.*).`)
+			if err != nil {
+				return data, err
+			}
+			match := re.FindStringSubmatch(logLineString)
+			if len(match) < 2 {
+				break
+			}
+			data.AttackerName = match[1]
+			data.TargetName = match[1]
+			break
+		}
 	}
 
 	// flags

@@ -31,26 +31,14 @@ end
 local function on_log(l)
     local match = regex_match("1A:([A-F0-9]*):(.*) gains the effect of Final (.*) (.) from", l.log_line)
     if match ~= nil then
+        local match_pid = match[2]
+        local match_symbol = match[5]
         if match[4] == "Decree Nisi" then
-            nisi_tracker[match[2]] = { match[5], act_encounter_time() }
+            nisi_tracker[match_symbol] = match_pid
         elseif match[4] == "Judgment: Decree Nisi" then
             local my_id = int_to_hex(me().id)
-            local me_has_nisi = act_encounter_time() - nisi_tracker[my_id][2] > decree_nisi_time
-            -- player got verdict and needs to take nisi
-            if not me_has_nisi and match[2] == my_id then
-                for pid, pdata in pairs(nisi_tracker) do
-                    if pdata[1] == match[5] then
-                        say_partner(pid)
-                        return
-                    end
-                end
-            -- player has nisi and needs to give it to another verdicted player
-            elseif me_has_nisi then
-                local my_nisi = nisi_tracker[my_id][1]
-                if my_nisi == match[5] then
-                    say_partner(match[2])
-                    return
-                end
+            if match_pid == my_id and nisi_tracker[match_symbol] ~= my_id then
+                say_partner(nisi_tracker[match_symbol])
             end
         end
     end

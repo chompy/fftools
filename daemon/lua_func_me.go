@@ -1,19 +1,12 @@
 package main
 
 import (
-	"regexp"
-	"strconv"
-
 	lua "github.com/yuin/gopher-lua"
 )
 
-var regexPlayerCast = regexp.MustCompile(`You (use|cast) (.*).`)
-var regexEnemyDamage = regexp.MustCompile(`(.*) takes ([0-9]*) damage.`)
 var localPlayerID = 0
 var localPlayerName = ""
 var localPlayerCombatant = Combatant{ID: 0, Job: ""}
-var localPlayerActions = make([][]interface{}, 0)
-var playerActions = make([][]interface{}, 0)
 
 func luaFuncMe(L *lua.LState) int {
 	t := &lua.LTable{}
@@ -25,6 +18,7 @@ func luaFuncMe(L *lua.LState) int {
 }
 
 func findLocalPlayerLogLine(event *eventDispatch) {
+	// TODO reset on new encounter?
 	if localPlayerName != "" && localPlayerID > 0 {
 		return
 	}
@@ -38,39 +32,16 @@ func findLocalPlayerLogLine(event *eventDispatch) {
 	switch parsedLogLine.Type {
 	case LogTypeSingleTarget:
 		{
-			playerActions = append(playerActions, []interface{}{
-				parsedLogLine.AttackerName, parsedLogLine.AttackerID, parsedLogLine.AbilityName, parsedLogLine.Damage,
-			})
-			break
-		}
-	case LogTypeGameLog:
-		{
-			matches := regexPlayerCast.FindAllStringSubmatch(logLine.LogLine, -1)
-			if len(matches) > 0 && len(matches[0]) > 0 {
-				localPlayerActions = append(localPlayerActions, []interface{}{matches[0][2], ""})
-			}
-			matches = regexEnemyDamage.FindAllStringSubmatch(logLine.LogLine, -1)
-			if len(matches) > 0 && len(matches[0]) > 0 && len(localPlayerActions) > 0 {
-				dmg, err := strconv.Atoi(matches[0][2])
-				if err != nil {
-					logWarn(err.Error())
-					return
-				}
-				localPlayerActions[len(localPlayerActions)-1][1] = dmg
-			}
-			break
-		}
-	}
-	// see if there is enough info
-	for _, localPlayerAction := range localPlayerActions {
-		for _, playerAction := range playerActions {
-			// compare skill name and damage delt to match player name
-			if localPlayerAction[0] == playerAction[2] && localPlayerAction[1] == playerAction[3] {
-				localPlayerName = playerAction[0].(string)
-				localPlayerID = playerAction[1].(int)
+			if localPlayerName != "" && parsedLogLine.AttackerName == localPlayerName {
+				localPlayerID = parsedLogLine.AttackerID
 				logInfo("Local player is %s (%d).", localPlayerName, localPlayerID)
-				break
 			}
+			break
+		}
+	case LogTypeChangePrimaryPlayer:
+		{
+			localPlayerName = parsedLogLine.AttackerName
+			break
 		}
 	}
 }
@@ -86,5 +57,4 @@ func init() {
 	luaRegisterFunction("me", luaFuncMe)
 	eventListenerAttach("act:log_line", findLocalPlayerLogLine)
 	eventListenerAttach("act:combatant", findLocalPlayerCombatant)
-
 }
