@@ -18,52 +18,111 @@ along with FFLiveParse.  If not, see <https://www.gnu.org/licenses/>.
 package main
 
 import (
-	"fmt"
-	"log"
 	"regexp"
-	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
 	lua "github.com/yuin/gopher-lua"
 )
 
-// LogTypeGameLog - Log type identifier, game logs
+// LogTypeGameLog defines a game log event.
 const LogTypeGameLog = 0x00
 
-// LogTypeZoneChange - Log type identifier, zone change
+// LogTypeZoneChange defines a zone change event.
 const LogTypeZoneChange = 0x01
 
-// LogTypeRemoveCombatant - Log type identifier, remove combatant
+// LogTypeChangePrimaryPlayer defines a player change event.
+const LogTypeChangePrimaryPlayer = 0x02
+
+// LogTypeAddPlayer defines an add combatant event.
+const LogTypeAddCombatant = 0x03
+
+// LogTypeRemoveCombatant defines a remove combatant event.
 const LogTypeRemoveCombatant = 0x04
 
-// LogTypeSingleTarget - Log type identifier, single target action
-const LogTypeSingleTarget = 0x15
+// LogTypeAddBuff defines an add buff event.
+const LogTypeAddBuff = 0x05
 
-// LogTypeAoe - Log type identifier, aoe action
-const LogTypeAoe = 0x16
+// LogTypeRemoveBuff defines a remove buff event.
+const LogTypeRemoveBuff = 0x06
 
-// LogTypeDot - Log type identifier, dot/hot tick
-const LogTypeDot = 0x18
+// LogTypeFlyingText defines a flying text event.
+const LogTypeFlyingText = 0x07
 
-// LogTypeDefeat - Log type identifier, defeated
-const LogTypeDefeat = 0x19
+// LogTypeOutgoingAbility defines an outgoing ability event.
+const LogTypeOutgoingAbility = 0x08
 
-// LogTypeGainEffect - Log type identifier, gained effect
-const LogTypeGainEffect = 0x1A
+// LogTypeIncomingAbility defines an incoming ability event.
+const LogTypeIncomingAbility = 0x09
 
-// LogTypeLoseEffect - Log type identifier, lose effect
-const LogTypeLoseEffect = 0x1E
+// LogTypePartyList defines a party list event (party makeup changes).
+const LogTypePartyList = 0x0B
 
-// LogTypeHPPercent - Log type identifier, HP percent of combatant
-const LogTypeHPPercent = 0x0D
+// LogTypePlayerStats defines a player stat event.
+const LogTypePlayerStats = 0x0C
 
-// LogTypeFFLPCombatant - Log type identifier, custom combatant data
-const LogTypeFFLPCombatant = 0x99
+// LogTypeCombatantHP defines a combatant hp event.
+const LogTypeCombatantHP = 0x0D
 
-// LogTypeChangePrimaryPlayer - Log type identifier, change player
-const LogTypeChangePrimaryPlayer = 0x02
+// LogTypeNetworkStartsCasting defines a network start casting event.
+const LogTypeNetworkStartsCasting = 0x14
+
+// LogTypeNetworkAbility defines a network ability event.
+const LogTypeNetworkAbility = 0x15
+
+// LogTypeNetworkAOEAbility defines a network aoe ability event.
+const LogTypeNetworkAOEAbility = 0x16
+
+// LogTypeNetworkCancelAbility defines a network cancel ability event.
+const LogTypeNetworkCancelAbility = 0x17
+
+// LogTypeNetworkDot defines a network dot event.
+const LogTypeNetworkDot = 0x18
+
+// LogTypeNetworkDeath defines a network death event.
+const LogTypeNetworkDeath = 0x19
+
+// LogTypeNetworkBuff defines a network buff event.
+const LogTypeNetworkBuff = 0x1A
+
+// LogTypeNetworkTargetIcon defines a network target icon event.
+const LogTypeNetworkTargetIcon = 0x1B
+
+// LogTypeNetworkRaidMarker defines a network raid marker event.
+const LogTypeNetworkRaidMarker = 0x1C
+
+// LogTypeNetworkTargetMarker defines a network target marker event.
+const LogTypeNetworkTargetMarker = 0x1D
+
+// LogTypeNetworkBuffRemove defines a network buff remove event.
+const LogTypeNetworkBuffRemove = 0x1E
+
+// LogTypeNetworkGauge defines a network guage event.
+const LogTypeNetworkGauge = 0x1F
+
+// LogTypeNetwork6D defines a network 6D event.
+const LogTypeNetwork6D = 0x21
+
+// LogTypeNetworkNameToggle defines a network name toggle event.
+const LogTypeNetworkNameToggle = 0x22
+
+// LogTypeNetworkTether defines a network tether event (tether between two combatants).
+const LogTypeNetworkTether = 0x23
+
+// LogTypeLimitBreak defines a limit break event.
+const LogTypeLimitBreak = 0x24
+
+// LogTypeNetworkActionSync defines a network action sync event.
+const LogTypeNetworkActionSync = 0x25
+
+// LogTypeNetworkStatusEffects defines a network status effects event.
+const LogTypeNetworkStatusEffects = 0x26
+
+// LogTypeNetworkUpdateHP defines a network up hp event.
+const LogTypeNetworkUpdateHP = 0x27
+
+// LogTypeMap defines a map event (map change).
+const LogTypeMap = 0x28
 
 // LogFieldType - Log field identifier, message type
 const LogFieldType = 0
@@ -104,110 +163,53 @@ const LogFieldAttackerCurrentHP = 33
 // LogFieldAttackerMaxHP - Log field identifier, attacker max hp
 const LogFieldAttackerMaxHP = 34
 
-// LogFlagDamage - Log flag, damage
-const LogFlagDamage = 1
-
-// LogFlagHeal - Log flag, heal
-const LogFlagHeal = 2
-
-// LogFlagCrit - Log flag, critical hit
-const LogFlagCrit = 3
-
-// LogFlagDirectHit - Log flag, direct hit
-const LogFlagDirectHit = 4
-
-// LogFlagDodge - Log flag, doge
-const LogFlagDodge = 5
-
-// LogFlagBlock - Log flag, block
-const LogFlagBlock = 6
-
-// LogFlagParry - Log flag, parry
-const LogFlagParry = 7
-
-// LogFlagInstantDeath - Log flag, instant death
-const LogFlagInstantDeath = 8
-
-// LogMsgIDCharacterWorldName - Log message ID for message with character world name
-const LogMsgIDCharacterWorldName = 0x102b
-
-// LogMsgIDObtainItem - Log message ID for message about obtaining item
-const LogMsgIDObtainItem = 0x083e
-
-// LogMsgIDCompletionTime - Log message ID for message about encounter completion
-const LogMsgIDCompletionTime = 0x0840
-
-// LogMsgIDCastLot - Log message ID for message about casting lot on loot
-const LogMsgIDCastLot = 0x0839
-
-// LogMsgIDEcho - Log message ID for echo messages
-const LogMsgIDEcho = 0x0038
-
-// LogMsgChatID - Log message IDs less then this value are considered chat messages and can be ignored
-const LogMsgChatID = 0x00FF
-
-// LogMsgPopUpBubble - Log mesage ID for popup text bubble during encounter.
-const LogMsgPopUpBubble = 0x0044
-
-// LogMsgIDCountdown - Log message IDs for countdown
-var LogMsgIDCountdown = [...]int{0x0039, 0x00b9, 0x0139}
-
 // logShiftValues
 var logShiftValues = [...]int{0x3E, 0x113, 0x213, 0x313}
 
-// ParsedLogLine - Data retrieved by parsing a log line
-type ParsedLogLine struct {
-	Type              int
-	Raw               string
-	AttackerID        int
-	AttackerName      string
-	AbilityID         int
-	AbilityName       string
-	TargetID          int
-	TargetName        string
-	Flags             []int
-	Damage            int
-	AttackerCurrentHP int
-	AttackerMaxHP     int
-	TargetCurrentHP   int
-	TargetMaxHP       int
-	Time              time.Time
+// logRegexes is a map of regular expressions used to parse log events.
+var logRegexes = map[int]*parseInstructions{
+	LogTypeZoneChange: &parseInstructions{
+		regexp.MustCompile(` 01:Changed Zone to (.*)\.`),
+		[]string{"zone|str"},
+	},
+	LogTypeChangePrimaryPlayer: &parseInstructions{
+		regexp.MustCompile(` 02:Changed primary player to (.*)\.`),
+		[]string{"name|str"},
+	},
+	LogTypeNetworkDeath: &parseInstructions{
+		regexp.MustCompile(` 19:([a-zA-Z0-9'\- ]*) was defeated by ([a-zA-Z0-9'\- ]*)`),
+		[]string{"target_name|str", "source_name|str"},
+	},
+	LogTypeRemoveCombatant: &parseInstructions{
+		regexp.MustCompile(` 04:([A-F0-9]*):Removing combatant ([a-zA-Z0-9'\- ]*)\.  Max HP####([0-9]*)\.`),
+		[]string{"target_id|int", "target_name|str", "target_max_hp|int"},
+	},
 }
 
-// HasFlag - Check if log line data has given flag
-func (l *ParsedLogLine) HasFlag(flag int) bool {
-	for _, lFlag := range l.Flags {
-		if lFlag == flag {
-			return true
-		}
-	}
-	return false
+// parseInstructions defines how to parse a given log type.
+type parseInstructions struct {
+	Regexp *regexp.Regexp
+	Fields []string
 }
 
-// hexToInt - convert hex string to int
-func hexToInt(hexString string) (int, error) {
-	if hexString == "" {
-		return 0, nil
-	}
-	output, err := strconv.ParseInt(hexString, 16, 64)
-	if err != nil {
-		_, fn, line, _ := runtime.Caller(1)
-		log.Println(hexString, fn, line)
-	}
-	return int(output), err
+// ParsedLogEvent defines a log event that has been parsed.
+type ParsedLogEvent struct {
+	Type   int
+	Raw    string
+	Time   time.Time
+	Values map[string]interface{}
 }
 
-// ParseLogLine - Parse log line in to data structure
-func ParseLogLine(logLine LogLine) (ParsedLogLine, error) {
+// ParseLogEvent parses a log event and returns results as a ParsedLogEvent.
+func ParseLogEvent(logLine LogLine) (ParsedLogEvent, error) {
 	logLineString := logLine.LogLine
 	if len(logLineString) <= 17 {
-		return ParsedLogLine{}, fmt.Errorf("tried to parse log line with too few characters")
+		return ParsedLogEvent{}, ErrLogParseTooFewCharacters
 	}
 	// get field type
 	logLineType, err := hexToInt(logLineString[15:17])
 	if err != nil {
-		log.Print(logLineString)
-		return ParsedLogLine{}, err
+		return ParsedLogEvent{}, err
 	}
 	// semi colon with space afterwards is ability name instead of delimiter
 	// probably........... examples... Kaeshi: Higanbana, Hissatsu: Guren
@@ -215,25 +217,26 @@ func ParseLogLine(logLine LogLine) (ParsedLogLine, error) {
 	// split fields
 	fields := strings.Split(logLineString[15:], ":")
 	// create data object
-	data := ParsedLogLine{
-		Type: int(logLineType),
-		Raw:  strings.Replace(logLineString, "####", ": ", -1),
-		Time: logLine.Time,
+	out := ParsedLogEvent{
+		Type:   int(logLineType),
+		Raw:    strings.Replace(logLineString, "####", ": ", -1),
+		Time:   logLine.Time,
+		Values: make(map[string]interface{}),
 	}
 	// parse remaining
 	switch logLineType {
-	case LogTypeSingleTarget, LogTypeAoe:
+	case LogTypeNetworkAbility, LogTypeNetworkAOEAbility:
 		{
 			// ensure there are enough fields
 			if len(fields) < 24 {
-				return ParsedLogLine{}, fmt.Errorf("not enough fields when parsing ability")
+				return out, ErrLogParseAbilityTooFewFields
 			}
 			// Shift damage and flags forward for mysterious spurious :3E:0:.
 			// Plenary Indulgence also appears to prepend confession stacks.
 			// UNKNOWN: Can these two happen at the same time?
 			flagsInt, err := hexToInt(fields[LogFieldFlags])
 			if err != nil {
-				return data, err
+				return out, err
 			}
 			for _, shiftValue := range logShiftValues {
 				if flagsInt == shiftValue {
@@ -249,7 +252,7 @@ func ParseLogLine(logLine LogLine) (ParsedLogLine, error) {
 				// Get the left four bytes as damage.
 				damage, err = hexToInt(fields[LogFieldDamage][0:4])
 				if err != nil {
-					return data, err
+					return out, err
 				}
 			}
 			// Check for third byte == 0x40.
@@ -257,339 +260,205 @@ func ParseLogLine(logLine LogLine) (ParsedLogLine, error) {
 				// Wrap in the 4th byte as extra damage.  See notes above.
 				rightDamage, err := hexToInt(fields[LogFieldDamage][damageFieldLength-2 : damageFieldLength])
 				if err != nil {
-					return data, err
+					return out, err
 				}
 				damage = damage - rightDamage + (rightDamage << 16)
 			}
-			data.Damage = int(damage)
+			out.Values["damage"] = int(damage)
 			// attacker id
 			attackerID, err := hexToInt(fields[LogFieldAttackerID])
 			if err != nil {
-				return data, err
+				return out, err
 			}
-			data.AttackerID = int(attackerID)
+			out.Values["source_id"] = int(attackerID)
 			// attacker name
-			data.AttackerName = fields[LogFieldAttackerName]
+			out.Values["source_name"] = fields[LogFieldAttackerName]
 			// ability id
 			abilityID, err := hexToInt(fields[LogFieldAbilityID])
 			if err != nil {
-				return data, err
+				return out, err
 			}
-			data.AbilityID = int(abilityID)
+			out.Values["ability_id"] = int(abilityID)
 			// ability name
-			data.AbilityName = fields[LogFieldAbilityName]
+			out.Values["ability_name"] = fields[LogFieldAbilityName]
 			// restore ability name with semicolon
-			data.AbilityName = strings.Replace(data.AbilityName, "####", ": ", -1)
+			out.Values["ability_name"] = strings.Replace(out.Values["ability_name"].(string), "####", ": ", -1)
 			// target id
 			targetID, err := hexToInt(fields[LogFieldTargetID])
 			if err != nil {
-				return data, err
+				return out, err
 			}
-			data.TargetID = int(targetID)
+			out.Values["target_id"] = int(targetID)
 			// target name
-			data.TargetName = fields[LogFieldTargetName]
+			out.Values["target_name"] = fields[LogFieldTargetName]
 			// target current hp
 			if len(fields)-1 >= LogFieldTargetCurrentHP && fields[LogFieldTargetCurrentHP] != "" {
 				targetCurrentHP, err := hexToInt(fields[LogFieldTargetCurrentHP])
 				if err != nil {
-					return data, err
+					return out, err
 				}
-				data.TargetCurrentHP = int(targetCurrentHP)
+				out.Values["target_current_hp"] = int(targetCurrentHP)
 			}
 			// target max hp
 			if len(fields)-1 >= LogFieldTargetMaxHP && fields[LogFieldTargetMaxHP] != "" {
 				targetMaxHP, err := hexToInt(fields[LogFieldTargetMaxHP])
 				if err != nil {
-					return data, err
+					return out, err
 				}
-				data.TargetMaxHP = int(targetMaxHP)
+				out.Values["target_max_hp"] = int(targetMaxHP)
 			}
-			// attacker current hp
+			// source current hp
 			if len(fields)-1 >= LogFieldAttackerCurrentHP && fields[LogFieldAttackerCurrentHP] != "" {
 				attackerCurrentHP, err := hexToInt(fields[LogFieldAttackerCurrentHP])
 				if err != nil {
-					return data, err
+					return out, err
 				}
-				data.AttackerCurrentHP = int(attackerCurrentHP)
+				out.Values["source_current_hp"] = int(attackerCurrentHP)
 			}
-			// target max hp
+			// source max hp
 			if len(fields)-1 >= LogFieldAttackerMaxHP && fields[LogFieldAttackerMaxHP] != "" {
 				attackerMaxHP, err := hexToInt(fields[LogFieldAttackerMaxHP])
 				if err != nil {
-					return data, err
+					return out, err
 				}
-				data.AttackerMaxHP = int(attackerMaxHP)
+				out.Values["source_max_hp"] = int(attackerMaxHP)
 			}
-			break
-		}
-	case LogTypeDefeat:
-		{
-			re, err := regexp.Compile(` 19:([a-zA-Z0-9'\- ]*) was defeated by ([a-zA-Z0-9'\- ]*)`)
-			if err != nil {
-				return data, err
-			}
-			match := re.FindStringSubmatch(logLineString)
-			if len(match) < 3 {
-				break
-			}
-			data.AttackerName = match[2]
-			data.TargetName = match[1]
-			break
-		}
-	case LogTypeZoneChange:
-		{
-			re, err := regexp.Compile(` 01:Changed Zone to (.*)\.`)
-			if err != nil {
-				return data, err
-			}
-			match := re.FindStringSubmatch(logLineString)
-			if len(match) < 2 {
-				break
-			}
-			// special case, target name is zone name
-			data.TargetName = strings.Replace(match[1], "####", ": ", -1)
-			break
-		}
-	case LogTypeRemoveCombatant:
-		{
-			// remember...we replace ': ' with '####'
-			re, err := regexp.Compile(` 04:([A-F0-9]*):Removing combatant ([a-zA-Z0-9'\- ]*)\.  Max HP####([0-9]*)\.`)
-			if err != nil {
-				return data, err
-			}
-			match := re.FindStringSubmatch(logLineString)
-			if len(match) < 4 {
-				break
-			}
-			targetID, err := hexToInt(match[1])
-			if err != nil {
-				return data, err
-			}
-			data.TargetID = targetID
-			data.TargetName = match[2]
-			maxHP, err := hexToInt(match[3])
-			if err != nil {
-				return data, err
-			}
-			data.TargetMaxHP = int(maxHP)
-			break
-		}
-	case LogTypeHPPercent:
-		{
-			// ignore these messages
-			data.Raw = ""
-			break
-		}
-	case LogTypeGameLog:
-		{
-			break
-		}
-	case LogTypeChangePrimaryPlayer:
-		{
-			re, err := regexp.Compile(`Changed primary player to (.*).`)
-			if err != nil {
-				return data, err
-			}
-			match := re.FindStringSubmatch(logLineString)
-			if len(match) < 2 {
-				break
-			}
-			data.AttackerName = match[1]
-			data.TargetName = match[1]
-			break
-		}
-	}
-
-	// flags
-	if len(fields) >= LogFieldFlags+1 {
-		rawFlags := fields[LogFieldFlags]
-		if len(rawFlags) > 0 {
-			switch rawFlags[len(rawFlags)-1:] {
-			case "1":
-				{
-					data.Flags = append(data.Flags, LogFlagDodge)
-					break
-				}
-			case "3":
-				{
-					if len(rawFlags) >= 4 {
-						switch rawFlags[len(rawFlags)-3 : len(rawFlags)-2] {
-						case "3":
-							{
-								data.Flags = append(data.Flags, LogFlagInstantDeath)
-								break
-							}
-						default:
-							{
-								data.Flags = append(data.Flags, LogFlagDamage)
-								switch rawFlags[len(rawFlags)-4 : len(rawFlags)-3] {
-								case "1":
-									{
-										data.Flags = append(data.Flags, LogFlagCrit)
-										break
-									}
-								case "2":
-									{
-										data.Flags = append(data.Flags, LogFlagDirectHit)
-										break
-									}
+			// flags
+			out.Values["flag_dodge"] = false
+			out.Values["flag_instant_death"] = false
+			out.Values["flag_damage"] = false
+			out.Values["flag_critical_hit"] = false
+			out.Values["flag_direct_hit"] = false
+			out.Values["flag_heal"] = false
+			out.Values["flag_block"] = false
+			out.Values["flag_parry"] = false
+			if len(fields) >= LogFieldFlags+1 {
+				rawFlags := fields[LogFieldFlags]
+				if len(rawFlags) > 0 {
+					switch rawFlags[len(rawFlags)-1:] {
+					case "1":
+						{
+							out.Values["flag_dodge"] = true
+							break
+						}
+					case "3":
+						{
+							if len(rawFlags) >= 4 {
+								switch rawFlags[len(rawFlags)-3 : len(rawFlags)-2] {
 								case "3":
 									{
-										data.Flags = append(data.Flags, LogFlagCrit)
-										data.Flags = append(data.Flags, LogFlagDirectHit)
+										out.Values["flag_instant_death"] = true
+										break
+									}
+								default:
+									{
+										out.Values["flag_damage"] = true
+										switch rawFlags[len(rawFlags)-4 : len(rawFlags)-3] {
+										case "1":
+											{
+												out.Values["flag_critical_hit"] = true
+												break
+											}
+										case "2":
+											{
+												out.Values["flag_direct_hit"] = true
+												break
+											}
+										case "3":
+											{
+												out.Values["flag_critical_hit"] = true
+												out.Values["flag_direct_hit"] = true
+												break
+											}
+										}
 										break
 									}
 								}
-								break
 							}
+							break
+						}
+					case "4":
+						{
+							out.Values["flag_heal"] = true
+							if len(rawFlags) >= 6 && rawFlags[len(rawFlags)-6:len(rawFlags)-5] == "1" {
+								out.Values["flag_critical_hit"] = true
+							}
+							break
+						}
+					case "5":
+						{
+							out.Values["flag_block"] = true
+							break
+						}
+					case "6":
+						{
+							out.Values["flag_parry"] = true
+							break
 						}
 					}
-					break
 				}
-			case "4":
-				{
-					data.Flags = append(data.Flags, LogFlagHeal)
-					if len(rawFlags) >= 6 && rawFlags[len(rawFlags)-6:len(rawFlags)-5] == "1" {
-						data.Flags = append(data.Flags, LogFlagCrit)
+			}
+			break
+		}
+	default:
+		{
+			instructions := logRegexes[out.Type]
+			if instructions != nil {
+				match := instructions.Regexp.FindAllStringSubmatch(out.Raw, -1)
+				for index, field := range instructions.Fields {
+					fieldSplit := strings.Split(field, "|")
+					switch fieldSplit[1] {
+					case "int":
+						{
+							out.Values[fieldSplit[0]] = 0
+							value, err := hexToInt(match[0][index+1])
+							if err == nil {
+								out.Values[fieldSplit[0]] = value
+							}
+							break
+						}
+					case "str":
+						{
+							out.Values[fieldSplit[0]] = match[0][index+1]
+							break
+						}
 					}
-					break
-				}
-			case "5":
-				{
-					data.Flags = append(data.Flags, LogFlagBlock)
-					break
-				}
-			case "6":
-				{
-					data.Flags = append(data.Flags, LogFlagParry)
-					break
 				}
 			}
+			break
 		}
 	}
-
-	return data, nil
-
+	return out, nil
 }
 
-func (l ParsedLogLine) TypeString() string {
-	switch l.Type {
-	case LogTypeAoe:
-		{
-			return "aoe"
-		}
-	case LogTypeDefeat:
-		{
-			return "defeat"
-		}
-	case LogTypeDot:
-		{
-			return "dot"
-		}
-	case LogTypeGainEffect:
-		{
-			return "gain_effect"
-		}
-	case LogTypeGameLog:
-		{
-			return "log"
-		}
-	case LogTypeRemoveCombatant:
-		{
-			return "remove_combatant"
-		}
-	case LogTypeHPPercent:
-		{
-			return "hp_percent"
-		}
-	case LogTypeLoseEffect:
-		{
-			return "lose_effect"
-		}
-	case LogTypeSingleTarget:
-		{
-			return "single_target"
-		}
-	case LogTypeZoneChange:
-		{
-			return "zone"
-		}
-	}
-	return "unknown"
-}
-
-func (l ParsedLogLine) FlagTypeString() []string {
-	out := make([]string, 0)
-	for _, flag := range l.Flags {
-		switch flag {
-		case LogFlagBlock:
-			{
-				out = append(out, "block")
-				break
-			}
-		case LogFlagCrit:
-			{
-				out = append(out, "critical")
-				break
-			}
-		case LogFlagDamage:
-			{
-				out = append(out, "damage")
-				break
-			}
-		case LogFlagDirectHit:
-			{
-				out = append(out, "direct_hit")
-				break
-			}
-		case LogFlagDodge:
-			{
-				out = append(out, "dodge")
-				break
-			}
-		case LogFlagHeal:
-			{
-				out = append(out, "heal")
-				break
-			}
-		case LogFlagInstantDeath:
-			{
-				out = append(out, "instant_death")
-				break
-			}
-		case LogFlagParry:
-			{
-				out = append(out, "parry")
-				break
-			}
-		}
-	}
-	return out
-}
-
-func (l ParsedLogLine) ToLua() *lua.LTable {
+func (l ParsedLogEvent) ToLua() *lua.LTable {
 	t := &lua.LTable{}
-	t.RawSetString("type", lua.LString(l.TypeString()))
+	t.RawSetString("type", lua.LNumber(l.Type))
 	t.RawSetString("raw", lua.LString(l.Raw))
 	t.RawSetString("time", lua.LNumber(l.Time.Unix()))
-	t.RawSetString("attacker_id", lua.LNumber(l.AttackerID))
-	t.RawSetString("attacker_name", lua.LString(l.AttackerName))
-	t.RawSetString("attacker_current_hp", lua.LNumber(l.AttackerCurrentHP))
-	t.RawSetString("attacker_max_hp", lua.LNumber(l.AttackerMaxHP))
-	t.RawSetString("ability_id", lua.LNumber(l.AbilityID))
-	t.RawSetString("ability_name", lua.LString(l.AbilityName))
-	t.RawSetString("target_id", lua.LNumber(l.TargetID))
-	t.RawSetString("target_name", lua.LString(l.TargetName))
-	t.RawSetString("target_current_hp", lua.LNumber(l.TargetCurrentHP))
-	t.RawSetString("target_max_hp", lua.LNumber(l.TargetMaxHP))
-	t.RawSetString("damage", lua.LNumber(l.Damage))
-	t.RawSetString("flag_damage", lua.LBool(l.HasFlag(LogFlagDamage)))
-	t.RawSetString("flag_heal", lua.LBool(l.HasFlag(LogFlagHeal)))
-	t.RawSetString("flag_critical", lua.LBool(l.HasFlag(LogFlagCrit)))
-	t.RawSetString("flag_direct_hit", lua.LBool(l.HasFlag(LogFlagDirectHit)))
-	t.RawSetString("flag_block", lua.LBool(l.HasFlag(LogFlagBlock)))
-	t.RawSetString("flag_parry", lua.LBool(l.HasFlag(LogFlagParry)))
-	t.RawSetString("flag_instant_death", lua.LBool(l.HasFlag(LogFlagInstantDeath)))
-	t.RawSetString("flag_dodge", lua.LBool(l.HasFlag(LogFlagDodge)))
+	for k, v := range l.Values {
+		switch v := v.(type) {
+		case int:
+			{
+				t.RawSetString(k, lua.LNumber(v))
+				break
+			}
+		case float64:
+			{
+				t.RawSetString(k, lua.LNumber(v))
+				break
+			}
+		case string:
+			{
+				t.RawSetString(k, lua.LString(v))
+				break
+			}
+		case bool:
+			{
+				t.RawSetString(k, lua.LBool(v))
+				break
+			}
+		}
+	}
 	return t
 }

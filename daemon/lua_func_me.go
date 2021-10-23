@@ -22,25 +22,20 @@ func findLocalPlayerLogLine(event *eventDispatch) {
 	if localPlayerName != "" && localPlayerID > 0 {
 		return
 	}
-	// collect player data from incomming log lines
-	logLine := event.Data.(LogLine)
-	parsedLogLine, err := ParseLogLine(logLine)
-	if err != nil {
-		logWarn(err.Error())
-		return
-	}
-	switch parsedLogLine.Type {
-	case LogTypeSingleTarget:
+	// collect player data from log event
+	logEvent := event.Data.(ParsedLogEvent)
+	switch logEvent.Type {
+	case LogTypeNetworkAbility:
 		{
-			if localPlayerName != "" && parsedLogLine.AttackerName == localPlayerName {
-				localPlayerID = parsedLogLine.AttackerID
+			if localPlayerName != "" && logEvent.Values["source_name"].(string) == localPlayerName {
+				localPlayerID = logEvent.Values["source_id"].(int)
 				logInfo("Local player is %s (%d).", localPlayerName, localPlayerID)
 			}
 			break
 		}
 	case LogTypeChangePrimaryPlayer:
 		{
-			localPlayerName = parsedLogLine.AttackerName
+			localPlayerName = logEvent.Values["name"].(string)
 			break
 		}
 	}
@@ -55,6 +50,6 @@ func findLocalPlayerCombatant(event *eventDispatch) {
 
 func init() {
 	luaRegisterFunction("me", luaFuncMe)
-	eventListenerAttach("act:log_line", findLocalPlayerLogLine)
+	eventListenerAttach("act:parsed_log_event", findLocalPlayerLogLine)
 	eventListenerAttach("act:combatant", findLocalPlayerCombatant)
 }

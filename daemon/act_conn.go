@@ -38,11 +38,18 @@ func actListenUDP() error {
 		switch messageType {
 		case DataTypeLogLine:
 			{
+				// decode raw log + dispatch event
 				logLine := LogLine{}
 				if err := logLine.FromBytes(buf[:]); err != nil {
 					break
 				}
 				eventListenerDispatch("act:log_line", logLine)
+				// parsed log
+				parsedLogEvent, err := ParseLogEvent(logLine)
+				if err != nil {
+					break
+				}
+				eventListenerDispatch("act:parsed_log_event", parsedLogEvent)
 				break
 			}
 		case DataTypeCombatant:
