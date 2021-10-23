@@ -41,14 +41,12 @@ namespace ACT_Plugin
 
         const UInt16 DAEMON_PORT = 31593;                       // Port to send to daemon on.
         
-        const byte DATA_TYPE_SESSION = 1;                       // Data type, session data
         const byte DATA_TYPE_ENCOUNTER = 2;                     // Data type, encounter data
         const byte DATA_TYPE_COMBATANT = 3;                     // Data type, combatant data
         const byte DATA_TYPE_LOG_LINE = 5;                      // Data type, log line
         const byte DATA_TYPE_FLAG = 99;                         // Data type, flag
 
-        const byte DATA_TYPE_SCRIPTS_AVAILABLE = 201;           // Data type, lua scripts available
-        const byte DATA_TYPE_SCRIPTS_ENABLED = 202;             // Data type, lua scripts enabled
+        const byte DATA_TYPE_SCRIPT = 201;                      // Data type, information about an available lua script
         const byte DATA_TYPE_ACT_SAY = 203;                     // Data type, speak with TTS
         const byte DATA_TYPE_ACT_END = 204;                     // Data type, flag to end encounter
 
@@ -60,11 +58,30 @@ namespace ACT_Plugin
         private IPEndPoint udpEndpoint;                         // UDP address
         Thread listenThread;                                    // Thread for listening for incoming data
         private long lastTTSTime = 0;                           // Last time TTS was timed out
-        private string[] availableScripts;
-        private string[] enabledScripts;
+        private List<string[]> scriptData;
+
+        private System.Windows.Forms.ListBox formScriptList;    // Form element containing list of available Lua scripts
 
         public FFActLua()
         {
+            this.SuspendLayout();
+            this.Dock = DockStyle.Fill;
+
+            this.formScriptList = new System.Windows.Forms.ListBox();
+            this.formScriptList.Name = "ScriptList";
+            this.formScriptList.Location = new System.Drawing.Point(12, 12);
+            this.formScriptList.MinimumSize = new System.Drawing.Size(245, this.Height);
+
+
+            //this.formScriptList.Size = new System.Drawing.Size(245, this.Height);
+
+            this.formScriptList.AutoSize = true;
+            //this.formScriptList.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+
+            this.Controls.Add(this.formScriptList);
+
+            this.ResumeLayout(false);
+            this.PerformLayout();
         }
 
         public void InitPlugin(TabPage pluginScreenSpace, Label pluginStatusText)
@@ -80,9 +97,14 @@ namespace ACT_Plugin
             ActGlobals.oFormActMain.OnCombatEnd += new CombatToggleEventDelegate(oFormActMain_OnCombatEnd);
             ActGlobals.oFormActMain.AfterCombatAction += new CombatActionDelegate(oFormActMain_AfterCombatAction);
             ActGlobals.oFormActMain.OnLogLineRead += new LogLineEventDelegate(oFormActMain_OnLogLineRead);
-            // form stuff
-			//pluginScreenSpace.Controls.Add(this);	// Add this UserControl to the tab ACT provides
-			//this.Dock = DockStyle.Fill;	// Expand the UserControl to fill the tab's client space
+            // /
+			pluginScreenSpace.Controls.Add(this);	// Add this UserControl to the tab ACT provides
+            // set tab title
+            foreach (ActPluginData p in ActGlobals.oFormActMain.ActPlugins) {
+                if (p.pluginObj == this) {
+                    p.tpPluginSpace.Text = "FFLua";
+                }
+            }
         }
 
         public void DeInitPlugin()
@@ -143,6 +165,7 @@ namespace ACT_Plugin
             udpListener = new UdpClient();
             listenThread = new Thread(new ThreadStart(udpListen));
             listenThread.Start();
+            sendScriptRequest();
         }
 
         void sendUdp(ref List<Byte> sendData)
@@ -167,14 +190,22 @@ namespace ACT_Plugin
                             ActGlobals.oFormActMain.EndCombat(true);
                             break;
                         }
-                        case DATA_TYPE_SCRIPTS_AVAILABLE: {
-                            string valStr = System.Text.Encoding.UTF8.GetString(bytes, 1, bytes.Length-1);
-                            availableScripts = valStr.Split(',');
-                            break;
-                        }
-                        case DATA_TYPE_SCRIPTS_ENABLED: {
-                            string valStr = System.Text.Encoding.UTF8.GetString(bytes, 1, bytes.Length-1);
-                            enabledScripts = valStr.Split(',');
+                        case DATA_TYPE_SCRIPT: {
+                            string valStr = System.Text.Encoding.UTF8.GetString(bytes, 1, bytes.Length-1);                           
+                            var valSplit = valStr.Split('|');
+                            var hasScript = false;
+                            foreach (var item in this.scriptData) {
+                                if (item[0] == valSplit[0]) {
+                                    hasScript = true;
+                                    break;
+                                }
+                            }
+                            if (hasScript) {
+                                break;
+                            }
+                            this.scriptData.Add(valSplit);
+                            this.formScriptList.Items.Add("[" + (valSplit[1] == "" ? " " : "O") + "] " + valSplit[2]);
+                            this.lblStatus.Text = valStr;
                             break;
                         }
                     }
@@ -294,6 +325,14 @@ namespace ACT_Plugin
             // line
             prepareString(ref sendData, logInfo.logLine);
             // send
+            sendUdp(ref sendData);
+        }
+
+        void sendScriptRequest()
+        {
+            this.scriptData = new List<string[]>();
+            List<Byte> sendData = new List<Byte>();
+            sendData.Add(DATA_TYPE_SCRIPT);
             sendUdp(ref sendData);
         }
 

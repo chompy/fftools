@@ -42,6 +42,8 @@ func luaListenCallback(event *eventDispatch) {
 	}
 	if err := L.PCall(argCount, 0, nil); err != nil {
 		logLuaWarn(L, err.Error())
+		scriptName := L.GetGlobal(luaGlobalScriptName).String()
+		actError(err, scriptName)
 	}
 }
 

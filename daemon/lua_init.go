@@ -14,12 +14,13 @@ const luaGlobalScriptName = "_script_name"
 
 var luaValidScriptNames = []string{"main.lua", "init.lua"}
 var luaFuncs map[string]lua.LGFunction = nil
+var loadedScripts []*luaScript = make([]*luaScript, 0)
 
 func luaGetScriptPath() string {
 	return luaScriptPath
 }
 
-func luaGetAvailableScripts() []string {
+func luaGetAvailableScriptNames() []string {
 	dirList, _ := ioutil.ReadDir(luaGetScriptPath())
 	out := make([]string, 0)
 	for _, fileInfo := range dirList {
@@ -44,8 +45,8 @@ func luaGetAvailableScripts() []string {
 	return out
 }
 
-func luaGetEnabledScripts() []string {
-	available := luaGetAvailableScripts()
+func luaGetEnabledScriptNames() []string {
+	available := luaGetAvailableScriptNames()
 	enabled, err := configLoadScriptsEnabled()
 	if err != nil {
 		logWarn(err.Error())
@@ -82,4 +83,79 @@ func luaRegisterFunction(name string, function lua.LGFunction) {
 		luaFuncs = make(map[string]lua.LGFunction)
 	}
 	luaFuncs[name] = function
+}
+
+func luaLoadScripts() []*luaScript {
+	availableScriptNames := luaGetAvailableScriptNames()
+	// remove scripts that are no longer available
+	hasRemovedScript := true
+	for hasRemovedScript {
+		hasRemovedScript = false
+		for i, script := range loadedScripts {
+			hasScript := false
+			for _, availableScriptName := range availableScriptNames {
+				if availableScriptName == script.ScriptName {
+					hasScript = true
+					break
+				}
+			}
+			if hasScript {
+				continue
+			}
+			loadedScripts = append(loadedScripts[:i], loadedScripts[i+1:]...)
+			hasRemovedScript = true
+			break
+		}
+	}
+	for _, scriptName := range availableScriptNames {
+		// check if loaded already
+		scriptIsLoaded := false
+		for _, loadedScript := range loadedScripts {
+			if loadedScript.ScriptName == scriptName {
+				scriptIsLoaded = true
+				break
+			}
+		}
+		if scriptIsLoaded {
+			continue
+		}
+		// load script
+		luaScript, _ := luaLoadScript(scriptName)
+		loadedScripts = append(loadedScripts, luaScript)
+	}
+	return loadedScripts
+}
+
+func luaEnableScripts() {
+	enabledScriptNames := luaGetEnabledScriptNames()
+	for _, script := range luaLoadScripts() {
+		// check enabled
+		enabled := false
+		for _, enabledScriptName := range enabledScriptNames {
+			if enabledScriptName == script.ScriptName {
+				enabled = true
+				break
+			}
+		}
+		if enabled && !script.Enabled {
+			// previously disabled, now enabled
+			if script.L == nil {
+				if err := script.load(); err != nil {
+					logLuaWarn(script.L, err.Error())
+					actError(err, script.ScriptName)
+					continue
+				}
+			}
+			if err := script.init(); err != nil {
+				logLuaWarn(script.L, err.Error())
+				actError(err, script.ScriptName)
+				continue
+			}
+			script.Enabled = true
+		} else if !enabled && script.Enabled {
+			// previously enabled, now disabled
+			script.close()
+			script.Enabled = false
+		}
+	}
 }

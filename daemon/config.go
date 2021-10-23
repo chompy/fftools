@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"path/filepath"
+
+	"gopkg.in/yaml.v2"
 )
 
 const configPath = "../config"
@@ -18,7 +20,7 @@ func configGetScriptsEnabledPath() string {
 }
 
 func configGetScriptConfigPath(name string) string {
-	return filepath.Join(configGetPath(), name+".json")
+	return filepath.Join(configGetPath(), name+".yaml")
 }
 
 func configLoadScriptsEnabled() ([]string, error) {
@@ -41,7 +43,7 @@ func configLoadScriptConfig(name string) (map[string]interface{}, error) {
 		return nil, err
 	}
 	out := make(map[string]interface{})
-	if err := json.Unmarshal(raw, &out); err != nil {
+	if err := yaml.Unmarshal(raw, &out); err != nil {
 		return nil, err
 	}
 	return out, nil

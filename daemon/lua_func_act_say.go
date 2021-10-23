@@ -12,6 +12,8 @@ func luaFuncActSay(L *lua.LState) int {
 	logLuaInfo(L, "ACT TTS Say '%s.'", text)
 	if err := actSay(text); err != nil {
 		logLuaWarn(L, err.Error())
+		scriptName := L.GetGlobal(luaGlobalScriptName).String()
+		actError(err, scriptName)
 	}
 	return 0
 }

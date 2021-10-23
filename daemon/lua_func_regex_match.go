@@ -23,6 +23,8 @@ func luaFuncRegexMatch(L *lua.LState) int {
 		luaRegexList[regexStr], err = regexp.Compile(regexStr)
 		if err != nil {
 			logLuaWarn(L, err.Error())
+			scriptName := L.GetGlobal(luaGlobalScriptName).String()
+			actError(err, scriptName)
 			return 0
 		}
 	}

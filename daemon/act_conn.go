@@ -2,13 +2,12 @@ package main
 
 import (
 	"net"
-	"strings"
 )
 
-const dataTypeActScriptsAvailable = 201
-const dataTypeActScriptsEnabled = 202
+const dataTypeActScripts = 201
 const dataTypeActSay = 203
 const dataTypeActEnd = 204
+const dataTypeActErr = 205
 const actListenPort = 31593
 
 var actConn *net.UDPConn = nil
@@ -70,6 +69,13 @@ func actListenUDP() error {
 				eventListenerDispatch("act:encounter", encounter)
 				break
 			}
+		case dataTypeActScripts:
+			{
+				if err := actSendScripts(); err != nil {
+					logWarn(err.Error())
+				}
+				break
+			}
 		}
 
 	}
@@ -85,20 +91,23 @@ func actRawSend(data []byte) error {
 	return nil
 }
 
-func actSendScriptsAvailable() error {
-	scripts := luaGetAvailableScripts()
-	data := strings.Join(scripts, ",")
-	return actRawSend(
-		append([]byte{byte(dataTypeActScriptsAvailable)}, []byte(data)...),
-	)
-}
-
-func actSendScriptsEnabled() error {
-	scripts := luaGetEnabledScripts()
-	data := strings.Join(scripts, ",")
-	return actRawSend(
-		append([]byte{byte(dataTypeActScriptsEnabled)}, []byte(data)...),
-	)
+func actSendScripts() error {
+	scripts := luaLoadScripts()
+	for _, script := range scripts {
+		enabledString := ""
+		if script.Enabled {
+			enabledString = "1"
+		}
+		data := script.ScriptName + "|" + enabledString + "|" + script.Name + "|" + script.Desc
+		err := actRawSend(append(
+			[]byte{byte(dataTypeActScripts)},
+			[]byte(data)...,
+		))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func actSay(text string) error {
@@ -111,4 +120,12 @@ func actEnd() error {
 	return actRawSend(
 		[]byte{byte(dataTypeActEnd)},
 	)
+}
+
+func actError(err error, script string) error {
+	data := script + "|" + err.Error()
+	return actRawSend(append(
+		[]byte{byte(dataTypeActErr)},
+		[]byte(data)...,
+	))
 }
