@@ -411,15 +411,20 @@ func ParseLogEvent(logLine LogLine) (ParsedLogEvent, error) {
 					case "int":
 						{
 							out.Values[fieldSplit[0]] = 0
-							value, err := hexToInt(match[0][index+1])
-							if err == nil {
-								out.Values[fieldSplit[0]] = value
+							if len(match) > 0 {
+								value, err := hexToInt(match[0][index+1])
+								if err == nil {
+									out.Values[fieldSplit[0]] = value
+								}
 							}
 							break
 						}
 					case "str":
 						{
-							out.Values[fieldSplit[0]] = match[0][index+1]
+							out.Values[fieldSplit[0]] = ""
+							if len(match) > 0 {
+								out.Values[fieldSplit[0]] = match[0][index+1]
+							}
 							break
 						}
 					}
