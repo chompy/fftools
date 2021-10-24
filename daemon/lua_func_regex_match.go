@@ -9,11 +9,9 @@ import (
 var luaRegexList map[string]*regexp.Regexp = nil
 
 func luaFuncRegexMatch(L *lua.LState) int {
-
 	if luaRegexList == nil {
 		luaRegexList = make(map[string]*regexp.Regexp)
 	}
-
 	regexStr := L.ToString(1)
 	if regexStr == "" {
 		return 0

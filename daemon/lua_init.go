@@ -102,6 +102,7 @@ func luaLoadScripts() []*luaScript {
 			if hasScript {
 				continue
 			}
+			script.close()
 			loadedScripts = append(loadedScripts[:i], loadedScripts[i+1:]...)
 			hasRemovedScript = true
 			break

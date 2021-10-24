@@ -64,7 +64,7 @@ func (ls *luaScript) load() error {
 
 func (ls *luaScript) close() {
 	if ls.L != nil {
-		logLuaInfo(ls.L, "Disabled.")
+		logLuaInfo(ls.L, "Unloaded.")
 		luaEventDetachAllForState(ls.L)
 		ls.L.Close()
 		ls.L = nil

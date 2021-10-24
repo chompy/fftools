@@ -47,6 +47,7 @@ namespace ACT_Plugin
         const byte DATA_TYPE_FLAG = 99;                         // Data type, flag
 
         const byte DATA_TYPE_SCRIPT = 201;                      // Data type, information about an available lua script
+        const byte DATA_TYPE_PLAYER = 202;                      // Data type, request to send last player log line
         const byte DATA_TYPE_ACT_SAY = 203;                     // Data type, speak with TTS
         const byte DATA_TYPE_ACT_END = 204;                     // Data type, flag to end encounter
 
@@ -58,7 +59,8 @@ namespace ACT_Plugin
         private IPEndPoint udpEndpoint;                         // UDP address
         Thread listenThread;                                    // Thread for listening for incoming data
         private long lastTTSTime = 0;                           // Last time TTS was timed out
-        private List<string[]> scriptData;
+        private List<string[]> scriptData;                      // List of available Lua scripts
+        private LogLineEventArgs lastPlayerChangeLine;          // Last player change log line
 
         private System.Windows.Forms.ListBox formScriptList;    // Form element containing list of available Lua scripts
 
@@ -166,6 +168,9 @@ namespace ACT_Plugin
             listenThread = new Thread(new ThreadStart(udpListen));
             listenThread.Start();
             sendScriptRequest();
+            if (lastPlayerChangeLine != null) {
+                sendLogLine(lastPlayerChangeLine);
+            }
         }
 
         void sendUdp(ref List<Byte> sendData)
@@ -205,7 +210,13 @@ namespace ACT_Plugin
                             }
                             this.scriptData.Add(valSplit);
                             this.formScriptList.Items.Add("[" + (valSplit[1] == "" ? " " : "O") + "] " + valSplit[2]);
-                            this.lblStatus.Text = valStr;
+                            break;
+                        }
+                        case DATA_TYPE_PLAYER:
+                        {
+                            if (lastPlayerChangeLine != null) {
+                                sendLogLine(lastPlayerChangeLine);
+                            }
                             break;
                         }
                     }
@@ -324,6 +335,9 @@ namespace ACT_Plugin
             prepareDateTime(ref sendData, logInfo.detectedTime);
             // line
             prepareString(ref sendData, logInfo.logLine);
+            if (logInfo.logLine.Contains(" 02:Changed primary player to")) {
+                this.lastPlayerChangeLine = logInfo;
+            }
             // send
             sendUdp(ref sendData);
         }

@@ -5,6 +5,7 @@ import (
 )
 
 const dataTypeActScripts = 201
+const dataTypeActPlayer = 202
 const dataTypeActSay = 203
 const dataTypeActEnd = 204
 const dataTypeActErr = 205
@@ -12,6 +13,7 @@ const actListenPort = 31593
 
 var actConn *net.UDPConn = nil
 var remoteAddr *net.UDPAddr = nil
+var hasRequestedPlayer = false
 
 func actListenUDP() error {
 	addr := net.UDPAddr{
@@ -24,7 +26,6 @@ func actListenUDP() error {
 		return err
 	}
 	defer actConn.Close()
-
 	var buf [1024]byte
 	for {
 		rlen, remote, err := actConn.ReadFromUDP(buf[:])
@@ -32,6 +33,11 @@ func actListenUDP() error {
 			continue
 		}
 		remoteAddr = remote
+		// once connection is established request that act send last player change line
+		if !hasRequestedPlayer {
+			hasRequestedPlayer = true
+			actRequestPlayer()
+		}
 		// decode
 		messageType := buf[0]
 		switch messageType {
@@ -46,6 +52,7 @@ func actListenUDP() error {
 				// parsed log
 				parsedLogEvent, err := ParseLogEvent(logLine)
 				if err != nil {
+					logWarn(err.Error())
 					break
 				}
 				eventListenerDispatch("act:parsed_log_event", parsedLogEvent)
@@ -128,4 +135,8 @@ func actError(err error, script string) error {
 		[]byte{byte(dataTypeActErr)},
 		[]byte(data)...,
 	))
+}
+
+func actRequestPlayer() error {
+	return actRawSend([]byte{byte(dataTypeActPlayer)})
 }
