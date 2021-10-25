@@ -47,9 +47,12 @@ namespace ACT_Plugin
         const byte DATA_TYPE_FLAG = 99;                         // Data type, flag
 
         const byte DATA_TYPE_SCRIPT = 201;                      // Data type, information about an available lua script
-        const byte DATA_TYPE_PLAYER = 202;                      // Data type, request to send last player log line
-        const byte DATA_TYPE_ACT_SAY = 203;                     // Data type, speak with TTS
-        const byte DATA_TYPE_ACT_END = 204;                     // Data type, flag to end encounter
+        const byte DATA_TYPE_SCRIPT_ENABLE = 202;               // Data type, enable script
+        const byte DATA_TYPE_SCRIPT_DISABLE = 203;              // Data type, disable script
+        const byte DATA_TYPE_PLAYER = 204;                      // Data type, request to send last player log line
+        const byte DATA_TYPE_ACT_SAY = 205;                     // Data type, speak with TTS
+        const byte DATA_TYPE_ACT_END = 206;                     // Data type, flag to end encounter
+        const byte DATA_TYPE_ACT_ERR = 207;                     // Data type, flag that an error has occured
 
         const long TTS_TIMEOUT = 3000;                          // Time in miliseconds to timeout TTS
         
@@ -61,8 +64,12 @@ namespace ACT_Plugin
         private long lastTTSTime = 0;                           // Last time TTS was timed out
         private List<string[]> scriptData;                      // List of available Lua scripts
         private LogLineEventArgs lastPlayerChangeLine;          // Last player change log line
+        private string lastScriptSelected;
 
         private System.Windows.Forms.ListBox formScriptList;    // Form element containing list of available Lua scripts
+        private System.Windows.Forms.TextBox formScriptInfo;    // Form element containing information about selected script
+        private System.Windows.Forms.Button formScriptEnable;   // Form element button to enable/disable script
+        private System.Windows.Forms.Button formScriptConfig;   // Form element button to open script config file in notepad
 
         public FFActLua()
         {
@@ -73,14 +80,35 @@ namespace ACT_Plugin
             this.formScriptList.Name = "ScriptList";
             this.formScriptList.Location = new System.Drawing.Point(12, 12);
             this.formScriptList.MinimumSize = new System.Drawing.Size(245, this.Height);
-
-
-            //this.formScriptList.Size = new System.Drawing.Size(245, this.Height);
-
             this.formScriptList.AutoSize = true;
-            //this.formScriptList.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-
             this.Controls.Add(this.formScriptList);
+
+            this.formScriptInfo = new System.Windows.Forms.TextBox();
+            this.formScriptInfo.Name = "ScriptInfo";
+            this.formScriptInfo.Location = new System.Drawing.Point(260, 12);
+            this.formScriptInfo.MinimumSize = new System.Drawing.Size(245, this.Height);
+            this.formScriptInfo.AutoSize = true;
+            this.formScriptInfo.ReadOnly = true;
+            this.formScriptInfo.Multiline = true;
+            this.Controls.Add(this.formScriptInfo);
+
+            this.formScriptEnable = new System.Windows.Forms.Button();
+            this.formScriptEnable.Name = "ScriptEnable";
+            this.formScriptEnable.AutoSize = true;
+            this.formScriptEnable.Location = new System.Drawing.Point(260, this.Height + 16);
+            this.formScriptEnable.Size = new System.Drawing.Size(64, 24);
+            this.formScriptEnable.Text = "Enable";
+            this.formScriptEnable.Enabled = false;
+            this.Controls.Add(this.formScriptEnable);
+
+            this.formScriptConfig = new System.Windows.Forms.Button();
+            this.formScriptConfig.Name = "ScriptConfig";
+            this.formScriptConfig.AutoSize = true;
+            this.formScriptConfig.Location = new System.Drawing.Point(324, this.Height + 16);
+            this.formScriptConfig.Size = new System.Drawing.Size(82, 24);
+            this.formScriptConfig.Text = "Edit Config";
+            this.formScriptConfig.Enabled = false;
+            this.Controls.Add(this.formScriptConfig);
 
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -99,6 +127,8 @@ namespace ACT_Plugin
             ActGlobals.oFormActMain.OnCombatEnd += new CombatToggleEventDelegate(oFormActMain_OnCombatEnd);
             ActGlobals.oFormActMain.AfterCombatAction += new CombatActionDelegate(oFormActMain_AfterCombatAction);
             ActGlobals.oFormActMain.OnLogLineRead += new LogLineEventDelegate(oFormActMain_OnLogLineRead);
+            this.formScriptList.SelectedIndexChanged += ScriptList_SelectedIndexChanged;
+            this.formScriptEnable.Click += ScriptEnable_Click;
             // /
 			pluginScreenSpace.Controls.Add(this);	// Add this UserControl to the tab ACT provides
             // set tab title
@@ -116,6 +146,8 @@ namespace ACT_Plugin
             ActGlobals.oFormActMain.OnCombatEnd -= oFormActMain_OnCombatEnd;
             ActGlobals.oFormActMain.AfterCombatAction -= oFormActMain_AfterCombatAction;
             ActGlobals.oFormActMain.OnLogLineRead  -= oFormActMain_OnLogLineRead;
+            this.formScriptList.SelectedIndexChanged -= ScriptList_SelectedIndexChanged;
+            this.formScriptEnable.Click -= ScriptEnable_Click;
             //this.buttonSave.Click -= buttonSave_OnClick;
             // close udp client
             udpClient.Close();
@@ -147,6 +179,40 @@ namespace ACT_Plugin
             sendLogLine(logInfo);
         }
 
+        void ScriptList_SelectedIndexChanged(object sender, System.EventArgs e)
+        {
+            string value = this.formScriptList.SelectedItem.ToString();
+            int index = this.formScriptList.FindString(value);
+            string titleSep = new String('-', 64);
+            string desc = this.scriptData[index][3];
+            if (this.scriptData[index][4] != "") {
+                desc = "ERROR:\r\n" + this.scriptData[index][4];
+            }
+            this.formScriptInfo.Text = this.scriptData[index][2] + "\r\n" +
+                titleSep + "\r\n" + desc;  
+            this.formScriptEnable.Enabled = true;
+            this.formScriptEnable.Text = "Disable";
+            if (this.scriptData[index][1] == "") {
+                this.formScriptEnable.Text = "Enable";
+            }
+        }
+
+        void ScriptEnable_Click(object sender, System.EventArgs e)
+        {
+            this.formScriptList.Enabled = false;
+            this.formScriptEnable.Enabled = false;
+            string value = this.formScriptList.SelectedItem.ToString();
+            int index = this.formScriptList.FindString(value);
+            string name = this.scriptData[index][0];
+            if (this.scriptData[index][1] == "") {
+                this.resetScriptList();
+                sendEnableScript(name);
+                return;
+            }
+            this.resetScriptList();
+            sendDisableScript(name);
+        }
+
         void udpConnect()
         {
             // connect to daemon
@@ -157,8 +223,7 @@ namespace ACT_Plugin
             udpClient = new UdpClient();
             try {
                 udpClient.Connect(udpEndpoint);
-            } catch (System.Net.Sockets.SocketException e) {
-                lblStatus.Text = "ERROR: " + e.Message;
+            } catch (System.Net.Sockets.SocketException) {
             }
             // listen from daemon
             if (udpListener != null) {
@@ -209,7 +274,12 @@ namespace ACT_Plugin
                                 break;
                             }
                             this.scriptData.Add(valSplit);
-                            this.formScriptList.Items.Add("[" + (valSplit[1] == "" ? " " : "O") + "] " + valSplit[2]);
+                            string label = "[" + (valSplit[1] == "" ? " " : "O") + "] " + valSplit[2];
+                            this.formScriptList.Items.Add(label);
+                            if (this.lastScriptSelected != "" && valSplit[0] == this.lastScriptSelected) {
+                                int index = this.formScriptList.FindString(label);
+                                this.formScriptList.SetSelected(index, true);
+                            }
                             break;
                         }
                         case DATA_TYPE_PLAYER:
@@ -221,8 +291,7 @@ namespace ACT_Plugin
                         }
                     }
 
-                } catch (SocketException e) {
-                    lblStatus.Text = "ERROR: " + e.Message;
+                } catch (SocketException) {
                 }
             }
             //udpListener.Close();
@@ -342,11 +411,39 @@ namespace ACT_Plugin
             sendUdp(ref sendData);
         }
 
+        void resetScriptList()
+        {
+            if (this.scriptData != null && this.scriptData.Count > 0) {
+                string value = this.formScriptList.SelectedItem.ToString();
+                int index = this.formScriptList.FindString(value);
+                this.lastScriptSelected = this.scriptData[index][0];
+            }
+            this.scriptData = new List<string[]>();
+            this.formScriptList.Items.Clear();
+            this.formScriptList.Enabled = true;
+        }
+
         void sendScriptRequest()
         {
-            this.scriptData = new List<string[]>();
+            this.resetScriptList();
             List<Byte> sendData = new List<Byte>();
             sendData.Add(DATA_TYPE_SCRIPT);
+            sendUdp(ref sendData);
+        }
+
+        void sendEnableScript(string name)
+        {
+            List<Byte> sendData = new List<Byte>();
+            sendData.Add(DATA_TYPE_SCRIPT_ENABLE);
+            prepareString(ref sendData, name);
+            sendUdp(ref sendData);
+        }
+
+        void sendDisableScript(string name)
+        {
+            List<Byte> sendData = new List<Byte>();
+            sendData.Add(DATA_TYPE_SCRIPT_DISABLE);
+            prepareString(ref sendData, name);
             sendUdp(ref sendData);
         }
 

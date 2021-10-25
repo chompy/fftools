@@ -5,10 +5,12 @@ import (
 )
 
 const dataTypeActScripts = 201
-const dataTypeActPlayer = 202
-const dataTypeActSay = 203
-const dataTypeActEnd = 204
-const dataTypeActErr = 205
+const dataTypeActScriptEnable = 202
+const dataTypeActScriptDisable = 203
+const dataTypeActPlayer = 204
+const dataTypeActSay = 205
+const dataTypeActEnd = 206
+const dataTypeActErr = 207
 const actListenPort = 31593
 
 var actConn *net.UDPConn = nil
@@ -83,6 +85,18 @@ func actListenUDP() error {
 				}
 				break
 			}
+		case dataTypeActScriptEnable, dataTypeActScriptDisable:
+			{
+				pos := 1
+				scriptName := readString(buf[:], &pos)
+				if err := configSetScriptEnabled(scriptName, messageType == dataTypeActScriptEnable); err != nil {
+					logWarn(err.Error())
+					break
+				}
+				luaEnableScripts()
+				actSendScripts()
+				break
+			}
 		}
 
 	}
@@ -105,7 +119,11 @@ func actSendScripts() error {
 		if script.Enabled {
 			enabledString = "1"
 		}
-		data := script.ScriptName + "|" + enabledString + "|" + script.Name + "|" + script.Desc
+		lastErrMsg := ""
+		if script.LastError != nil {
+			lastErrMsg = script.LastError.Error()
+		}
+		data := script.ScriptName + "|" + enabledString + "|" + script.Name + "|" + script.Desc + "|" + lastErrMsg
 		err := actRawSend(append(
 			[]byte{byte(dataTypeActScripts)},
 			[]byte(data)...,
@@ -129,12 +147,14 @@ func actEnd() error {
 	)
 }
 
-func actError(err error, script string) error {
-	data := script + "|" + err.Error()
-	return actRawSend(append(
-		[]byte{byte(dataTypeActErr)},
-		[]byte(data)...,
-	))
+func actError(err error, scriptName string) error {
+	for _, script := range loadedScripts {
+		if script.ScriptName == scriptName {
+			script.LastError = err
+			break
+		}
+	}
+	return actSendScripts()
 }
 
 func actRequestPlayer() error {

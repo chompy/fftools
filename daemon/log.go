@@ -20,19 +20,28 @@ func logDebug(msg string, data interface{}) {
 }
 
 func logLuaInfo(L *lua.LState, msg string, args ...interface{}) {
-	scriptName := L.GetGlobal(luaGlobalScriptName).String()
+	scriptName := "?"
+	if L != nil {
+		scriptName = L.GetGlobal(luaGlobalScriptName).String()
+	}
 	msg = fmt.Sprintf("[%s] %s", scriptName, msg)
 	logInfo(msg, args...)
 }
 
 func logLuaWarn(L *lua.LState, msg string, args ...interface{}) {
-	scriptName := L.GetGlobal(luaGlobalScriptName).String()
+	scriptName := "?"
+	if L != nil {
+		scriptName = L.GetGlobal(luaGlobalScriptName).String()
+	}
 	msg = fmt.Sprintf("[%s] %s", scriptName, msg)
 	logWarn(msg, args...)
 }
 
 func logLuaDebug(L *lua.LState, msg string, data interface{}) {
-	scriptName := L.GetGlobal(luaGlobalScriptName).String()
+	scriptName := "?"
+	if L != nil {
+		scriptName = L.GetGlobal(luaGlobalScriptName).String()
+	}
 	msg = fmt.Sprintf("[%s] %s", scriptName, msg)
 	logDebug(msg, data)
 }

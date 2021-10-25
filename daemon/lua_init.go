@@ -139,24 +139,29 @@ func luaEnableScripts() {
 			}
 		}
 		if enabled && !script.Enabled {
+			script.Enabled = true
 			// previously disabled, now enabled
-			if script.L == nil {
-				if err := script.load(); err != nil {
-					logLuaWarn(script.L, err.Error())
-					actError(err, script.ScriptName)
-					continue
-				}
+			script.close()
+			if err := script.load(); err != nil {
+				logLuaWarn(script.L, err.Error())
+				actError(err, script.ScriptName)
+				continue
+			}
+			if err := script.info(); err != nil {
+				logLuaWarn(script.L, err.Error())
+				actError(err, script.ScriptName)
+				continue
 			}
 			if err := script.init(); err != nil {
 				logLuaWarn(script.L, err.Error())
 				actError(err, script.ScriptName)
 				continue
 			}
-			script.Enabled = true
 		} else if !enabled && script.Enabled {
 			// previously enabled, now disabled
-			script.close()
 			script.Enabled = false
+			script.close()
+			script.load()
 		}
 	}
 }

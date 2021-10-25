@@ -45,15 +45,15 @@ func luaLoadScript(name string) (*luaScript, error) {
 func (ls *luaScript) load() error {
 	ls.close()
 	ls.LastError = nil
-	// init lua, load script file
+	// init lua
 	ls.L = lua.NewState()
+	// set global script name var
+	ls.L.SetGlobal(luaGlobalScriptName, lua.LString(ls.ScriptName))
+	// load script
 	if err := ls.L.DoFile(ls.Path); err != nil {
-		ls.close()
 		ls.LastError = err
 		return err
 	}
-	// set globals variables
-	ls.L.SetGlobal(luaGlobalScriptName, lua.LString(ls.ScriptName))
 	// set global functions
 	for name, function := range luaFuncs {
 		ls.L.SetGlobal(name, ls.L.NewFunction(function))
@@ -72,12 +72,17 @@ func (ls *luaScript) close() {
 }
 
 func (ls *luaScript) init() error {
+	if !ls.Enabled {
+		return nil
+	}
 	logLuaInfo(ls.L, "Enabled.")
 	initFunc := ls.L.GetGlobal("init")
 	ls.L.Push(initFunc)
 	err := ls.L.PCall(0, 0, nil)
 	if err != nil {
 		ls.LastError = err
+		ls.Enabled = false
+		logLuaWarn(ls.L, err.Error())
 		actError(err, ls.ScriptName)
 		return err
 	}
@@ -89,7 +94,7 @@ func (ls *luaScript) info() error {
 	ls.L.Push(infoFunc)
 	if err := ls.L.PCall(0, 1, nil); err != nil {
 		ls.LastError = err
-		actError(err, ls.ScriptName)
+		logLuaWarn(ls.L, err.Error())
 		return err
 	}
 	infoTable := ls.L.ToTable(1)
