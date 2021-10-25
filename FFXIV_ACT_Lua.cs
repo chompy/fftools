@@ -23,6 +23,7 @@ using System.Windows.Forms;
 using System.Reflection;
 using System.Net;
 using System.Net.Sockets;
+using System.Diagnostics;
 using System.Threading;  
 using System.Threading.Tasks;
 using Advanced_Combat_Tracker;
@@ -64,13 +65,16 @@ namespace ACT_Plugin
         private long lastTTSTime = 0;                           // Last time TTS was timed out
         private List<string[]> scriptData;                      // List of available Lua scripts
         private LogLineEventArgs lastPlayerChangeLine;          // Last player change log line
-        private string lastScriptSelected;
+        private string lastScriptSelected;                      // Name of last script selected in list
+        private Process scriptDaemon;                           // Instance of script daemon process
 
         private System.Windows.Forms.ListBox formScriptList;    // Form element containing list of available Lua scripts
         private System.Windows.Forms.TextBox formScriptInfo;    // Form element containing information about selected script
         private System.Windows.Forms.Button formScriptEnable;   // Form element button to enable/disable script
         private System.Windows.Forms.Button formScriptConfig;   // Form element button to open script config file in notepad
         private System.Windows.Forms.Button formScriptReload;   // Form element button to reload scripts
+
+        
 
         public FFActLua()
         {
@@ -126,6 +130,13 @@ namespace ACT_Plugin
 
         public void InitPlugin(TabPage pluginScreenSpace, Label pluginStatusText)
         {
+            // start daemon
+            this.scriptDaemon = new Process();
+            this.scriptDaemon.StartInfo.FileName = this.getPluginDirectory() + "\\fflua_server.exe";
+            this.scriptDaemon.StartInfo.CreateNoWindow = true;
+            this.scriptDaemon.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            this.scriptDaemon.Start();
+            Thread.Sleep(250);
             // status label
             lblStatus = pluginStatusText; // Hand the status label's reference to our local var
             // update plugin status text
@@ -167,6 +178,11 @@ namespace ACT_Plugin
                 listenThread.Abort();
             }
             udpListener.Close();
+            // close process
+            if (this.scriptDaemon != null) {
+                this.scriptDaemon.Kill();
+            }
+
             // update plugin status text
             lblStatus.Text = "Plugin Exited";
         }
@@ -474,6 +490,17 @@ namespace ACT_Plugin
                 ActGlobals.oFormActMain.TTS(text);
             }
         }
+
+        string getPluginDirectory()
+        {
+            foreach (ActPluginData p in ActGlobals.oFormActMain.ActPlugins) {
+                if (p.pluginObj == this) {
+                    return p.pluginFile.DirectoryName;
+                }
+            }
+            return "";
+        }
+
 
     }
 }

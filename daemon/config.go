@@ -9,11 +9,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const configPath = "../config"
+const configPath = "config"
 const configScriptsEnabledFile = "enabled.json"
 
 func configGetPath() string {
-	return configPath
+	exePath, _ := os.Executable()
+	return filepath.Join(filepath.Dir(exePath), configPath)
 }
 
 func configGetScriptsEnabledPath() string {
