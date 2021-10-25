@@ -70,6 +70,7 @@ namespace ACT_Plugin
         private System.Windows.Forms.TextBox formScriptInfo;    // Form element containing information about selected script
         private System.Windows.Forms.Button formScriptEnable;   // Form element button to enable/disable script
         private System.Windows.Forms.Button formScriptConfig;   // Form element button to open script config file in notepad
+        private System.Windows.Forms.Button formScriptReload;   // Form element button to reload scripts
 
         public FFActLua()
         {
@@ -110,6 +111,15 @@ namespace ACT_Plugin
             this.formScriptConfig.Enabled = false;
             this.Controls.Add(this.formScriptConfig);
 
+            this.formScriptReload = new System.Windows.Forms.Button();
+            this.formScriptReload.Name = "ScriptReload";
+            this.formScriptReload.AutoSize = true;
+            this.formScriptReload.Location = new System.Drawing.Point(12, this.Height + 16);
+            this.formScriptReload.Size = new System.Drawing.Size(82, 24);
+            this.formScriptReload.Text = "Refresh";
+            this.formScriptReload.Enabled = true;
+            this.Controls.Add(this.formScriptReload);
+
             this.ResumeLayout(false);
             this.PerformLayout();
         }
@@ -129,6 +139,7 @@ namespace ACT_Plugin
             ActGlobals.oFormActMain.OnLogLineRead += new LogLineEventDelegate(oFormActMain_OnLogLineRead);
             this.formScriptList.SelectedIndexChanged += ScriptList_SelectedIndexChanged;
             this.formScriptEnable.Click += ScriptEnable_Click;
+            this.formScriptReload.Click += ScriptReload_Click;
             // /
 			pluginScreenSpace.Controls.Add(this);	// Add this UserControl to the tab ACT provides
             // set tab title
@@ -148,6 +159,7 @@ namespace ACT_Plugin
             ActGlobals.oFormActMain.OnLogLineRead  -= oFormActMain_OnLogLineRead;
             this.formScriptList.SelectedIndexChanged -= ScriptList_SelectedIndexChanged;
             this.formScriptEnable.Click -= ScriptEnable_Click;
+            this.formScriptReload.Click -= ScriptReload_Click;
             //this.buttonSave.Click -= buttonSave_OnClick;
             // close udp client
             udpClient.Close();
@@ -211,6 +223,13 @@ namespace ACT_Plugin
             }
             this.resetScriptList();
             sendDisableScript(name);
+        }
+
+        void ScriptReload_Click(object sender, System.EventArgs e)
+        {
+            this.formScriptList.Enabled = false;
+            this.formScriptEnable.Enabled = false;
+            this.sendScriptRequest();
         }
 
         void udpConnect()
@@ -413,7 +432,7 @@ namespace ACT_Plugin
 
         void resetScriptList()
         {
-            if (this.scriptData != null && this.scriptData.Count > 0) {
+            if (this.scriptData != null && this.scriptData.Count > 0 && this.formScriptList.SelectedItem != null) {
                 string value = this.formScriptList.SelectedItem.ToString();
                 int index = this.formScriptList.FindString(value);
                 this.lastScriptSelected = this.scriptData[index][0];

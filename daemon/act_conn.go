@@ -10,7 +10,6 @@ const dataTypeActScriptDisable = 203
 const dataTypeActPlayer = 204
 const dataTypeActSay = 205
 const dataTypeActEnd = 206
-const dataTypeActErr = 207
 const actListenPort = 31593
 
 var actConn *net.UDPConn = nil
@@ -89,6 +88,11 @@ func actListenUDP() error {
 			{
 				pos := 1
 				scriptName := readString(buf[:], &pos)
+				if messageType == dataTypeActScriptEnable {
+					logInfo("[ACT] Enable '%s' script.", scriptName)
+				} else {
+					logInfo("[ACT] Disable '%s' script.", scriptName)
+				}
 				if err := configSetScriptEnabled(scriptName, messageType == dataTypeActScriptEnable); err != nil {
 					logWarn(err.Error())
 					break
@@ -113,6 +117,7 @@ func actRawSend(data []byte) error {
 }
 
 func actSendScripts() error {
+	logInfo("[ACT] Send script list.")
 	scripts := luaLoadScripts()
 	for _, script := range scripts {
 		enabledString := ""
@@ -158,5 +163,6 @@ func actError(err error, scriptName string) error {
 }
 
 func actRequestPlayer() error {
+	logInfo("[ACT] Request primary player.")
 	return actRawSend([]byte{byte(dataTypeActPlayer)})
 }
