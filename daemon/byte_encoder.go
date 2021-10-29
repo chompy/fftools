@@ -18,8 +18,6 @@ along with FFLiveParse.  If not, see <https://www.gnu.org/licenses/>.
 package main
 
 import (
-	"bytes"
-	"compress/gzip"
 	"encoding/binary"
 	"time"
 )
@@ -55,20 +53,4 @@ func writeString(data *[]byte, value string) {
 
 func writeTime(data *[]byte, value time.Time) {
 	writeString(data, value.UTC().Format(time.RFC3339Nano))
-}
-
-func compressBytes(data []byte) ([]byte, error) {
-	var gzBytes bytes.Buffer
-	gz := gzip.NewWriter(&gzBytes)
-	defer gz.Close()
-	if _, err := gz.Write(data); err != nil {
-		return []byte{}, err
-	}
-	if err := gz.Flush(); err != nil {
-		return []byte{}, err
-	}
-	if err := gz.Close(); err != nil {
-		return []byte{}, err
-	}
-	return gzBytes.Bytes(), nil
 }

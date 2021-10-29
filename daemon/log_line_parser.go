@@ -19,6 +19,7 @@ package main
 
 import (
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -157,11 +158,29 @@ const LogFieldTargetCurrentHP = 23
 // LogFieldTargetMaxHP - Log field identifier, target max hp
 const LogFieldTargetMaxHP = 24
 
+// LogFieldTargetX - Log field identifier, target x pos
+const LogFieldTargetX = 30
+
+// LogFieldTargetY - Log field identifier, target y pos
+const LogFieldTargetY = 31
+
+// LogFieldTargetZ - Log field identifier, target z pos
+const LogFieldTargetZ = 32
+
 // LogFieldAttackerCurrentHP - Log field identifier, attacker current hp
 const LogFieldAttackerCurrentHP = 33
 
 // LogFieldAttackerMaxHP - Log field identifier, attacker max hp
 const LogFieldAttackerMaxHP = 34
+
+// LogFieldAttackerX - Log field identifier, attacker x pos
+const LogFieldAttackerX = 39
+
+// LogFieldAttackerY - Log field identifier, attacker y pos
+const LogFieldAttackerY = 40
+
+// LogFieldAttackerZ - Log field identifier, attacker z pos
+const LogFieldAttackerZ = 41
 
 // logShiftValues
 var logShiftValues = [...]int{0x3E, 0x113, 0x213, 0x313}
@@ -183,6 +202,14 @@ var logRegexes = map[int]*parseInstructions{
 	LogTypeRemoveCombatant: &parseInstructions{
 		regexp.MustCompile(` 04:([A-F0-9]*):Removing combatant ([a-zA-Z0-9'\- ]*)\.  Max HP####([0-9]*)\.`),
 		[]string{"target_id|int", "target_name|str", "target_max_hp|int"},
+	},
+	LogTypeNetworkTargetIcon: &parseInstructions{
+		regexp.MustCompile(` 1B:([A-F0-9]*):([a-zA-Z0-9'\- ]*):....:....:([A-F0-9]*):`),
+		[]string{"target_id|int", "target_name|str", "icon_id|int"},
+	},
+	LogTypeNetworkBuff: &parseInstructions{
+		regexp.MustCompile(` 1A:([A-F0-9]*):([a-zA-Z0-9'\- ]*) gains the effect of (.*) from (.*) for (.*) Seconds`),
+		[]string{"target_id|int", "target_name|str", "effect_name|str", "effect_duration|float"},
 	},
 }
 
@@ -228,7 +255,7 @@ func ParseLogEvent(logLine LogLine) (ParsedLogEvent, error) {
 	case LogTypeNetworkAbility, LogTypeNetworkAOEAbility:
 		{
 			// ensure there are enough fields
-			if len(fields) < 24 {
+			if len(fields) < 40 {
 				return out, ErrLogParseAbilityTooFewFields
 			}
 			// Shift damage and flags forward for mysterious spurious :3E:0:.
@@ -265,64 +292,23 @@ func ParseLogEvent(logLine LogLine) (ParsedLogEvent, error) {
 				damage = damage - rightDamage + (rightDamage << 16)
 			}
 			out.Values["damage"] = int(damage)
-			// attacker id
-			attackerID, err := hexToInt(fields[LogFieldAttackerID])
-			if err != nil {
-				return out, err
-			}
-			out.Values["source_id"] = int(attackerID)
-			// attacker name
+			out.Values["source_id"], _ = hexToInt(fields[LogFieldAttackerID])
 			out.Values["source_name"] = fields[LogFieldAttackerName]
-			// ability id
-			abilityID, err := hexToInt(fields[LogFieldAbilityID])
-			if err != nil {
-				return out, err
-			}
-			out.Values["ability_id"] = int(abilityID)
-			// ability name
+			out.Values["ability_id"], _ = hexToInt(fields[LogFieldAbilityID])
 			out.Values["ability_name"] = fields[LogFieldAbilityName]
-			// restore ability name with semicolon
 			out.Values["ability_name"] = strings.Replace(out.Values["ability_name"].(string), "####", ": ", -1)
-			// target id
-			targetID, err := hexToInt(fields[LogFieldTargetID])
-			if err != nil {
-				return out, err
-			}
-			out.Values["target_id"] = int(targetID)
-			// target name
+			out.Values["target_id"], _ = hexToInt(fields[LogFieldTargetID])
 			out.Values["target_name"] = fields[LogFieldTargetName]
-			// target current hp
-			if len(fields)-1 >= LogFieldTargetCurrentHP && fields[LogFieldTargetCurrentHP] != "" {
-				targetCurrentHP, err := hexToInt(fields[LogFieldTargetCurrentHP])
-				if err != nil {
-					return out, err
-				}
-				out.Values["target_current_hp"] = int(targetCurrentHP)
-			}
-			// target max hp
-			if len(fields)-1 >= LogFieldTargetMaxHP && fields[LogFieldTargetMaxHP] != "" {
-				targetMaxHP, err := hexToInt(fields[LogFieldTargetMaxHP])
-				if err != nil {
-					return out, err
-				}
-				out.Values["target_max_hp"] = int(targetMaxHP)
-			}
-			// source current hp
-			if len(fields)-1 >= LogFieldAttackerCurrentHP && fields[LogFieldAttackerCurrentHP] != "" {
-				attackerCurrentHP, err := hexToInt(fields[LogFieldAttackerCurrentHP])
-				if err != nil {
-					return out, err
-				}
-				out.Values["source_current_hp"] = int(attackerCurrentHP)
-			}
-			// source max hp
-			if len(fields)-1 >= LogFieldAttackerMaxHP && fields[LogFieldAttackerMaxHP] != "" {
-				attackerMaxHP, err := hexToInt(fields[LogFieldAttackerMaxHP])
-				if err != nil {
-					return out, err
-				}
-				out.Values["source_max_hp"] = int(attackerMaxHP)
-			}
+			out.Values["target_current_hp"], _ = strconv.ParseInt(fields[LogFieldTargetCurrentHP], 10, 64)
+			out.Values["target_max_hp"], _ = strconv.ParseInt(fields[LogFieldTargetMaxHP], 10, 64)
+			out.Values["target_x"], _ = strconv.ParseFloat(fields[LogFieldTargetX], 64)
+			out.Values["target_y"], _ = strconv.ParseFloat(fields[LogFieldTargetY], 64)
+			out.Values["target_z"], _ = strconv.ParseFloat(fields[LogFieldTargetZ], 64)
+			out.Values["source_current_hp"], _ = strconv.ParseInt(fields[LogFieldAttackerCurrentHP], 10, 64)
+			out.Values["source_max_hp"], _ = strconv.ParseInt(fields[LogFieldAttackerMaxHP], 10, 64)
+			out.Values["source_x"], _ = strconv.ParseFloat(fields[LogFieldAttackerX], 64)
+			out.Values["source_y"], _ = strconv.ParseFloat(fields[LogFieldAttackerY], 64)
+			out.Values["source_z"], _ = strconv.ParseFloat(fields[LogFieldAttackerZ], 64)
 			// flags
 			out.Values["flag_dodge"] = false
 			out.Values["flag_instant_death"] = false
@@ -427,6 +413,16 @@ func ParseLogEvent(logLine LogLine) (ParsedLogEvent, error) {
 							}
 							break
 						}
+					case "float":
+						{
+							out.Values[fieldSplit[0]] = float64(0)
+							if len(match) > 0 {
+								value, err := strconv.ParseFloat(match[0][index+1], 64)
+								if err == nil {
+									out.Values[fieldSplit[0]] = value
+								}
+							}
+						}
 					}
 				}
 			}
@@ -440,6 +436,7 @@ func (l ParsedLogEvent) ToLua() *lua.LTable {
 	t := &lua.LTable{}
 	t.RawSetString("type", lua.LNumber(l.Type))
 	t.RawSetString("raw", lua.LString(l.Raw))
+	t.RawSetString("log_line", lua.LString(l.Raw))
 	t.RawSetString("time", lua.LNumber(l.Time.Unix()))
 	for k, v := range l.Values {
 		switch v := v.(type) {

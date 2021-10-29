@@ -49,14 +49,13 @@ func actListenUDP() error {
 				if err := logLine.FromBytes(buf[:]); err != nil {
 					break
 				}
-				eventListenerDispatch("act:log_line", logLine)
 				// parsed log
 				parsedLogEvent, err := ParseLogEvent(logLine)
 				if err != nil {
 					logWarn(err.Error())
 					break
 				}
-				eventListenerDispatch("act:parsed_log_event", parsedLogEvent)
+				eventListenerDispatch("act:log_line", parsedLogEvent)
 				break
 			}
 		case DataTypeCombatant:

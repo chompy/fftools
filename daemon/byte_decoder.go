@@ -18,8 +18,6 @@ along with FFLiveParse.  If not, see <https://www.gnu.org/licenses/>.
 package main
 
 import (
-	"bytes"
-	"compress/gzip"
 	"encoding/binary"
 	"time"
 )
@@ -69,19 +67,4 @@ func readTime(data []byte, pos *int) time.Time {
 	timeString := readString(data, pos)
 	time, _ := time.Parse(time.RFC3339, timeString)
 	return time
-}
-
-func decompressBytes(data []byte) ([]byte, error) {
-	r := bytes.NewReader(data)
-	gz, err := gzip.NewReader(r)
-	if err != nil {
-		return nil, err
-	}
-	defer gz.Close()
-	var output bytes.Buffer
-	_, err = output.ReadFrom(gz)
-	if err != nil {
-		return nil, err
-	}
-	return output.Bytes(), nil
 }

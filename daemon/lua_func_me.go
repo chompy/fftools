@@ -11,8 +11,10 @@ var localPlayerCombatant = Combatant{ID: 0, Job: ""}
 func luaFuncMe(L *lua.LState) int {
 	t := &lua.LTable{}
 	t.RawSetString("name", lua.LString(localPlayerName))
+	//t.RawSetString("name", lua.LString("Qunara Sivra"))
 	t.RawSetString("job", lua.LString(localPlayerCombatant.Job))
 	t.RawSetString("id", lua.LNumber(localPlayerID))
+	//t.RawSetString("id", lua.LNumber(275303105))
 	L.Push(t)
 	return 1
 }
@@ -50,6 +52,6 @@ func findLocalPlayerCombatant(event *eventDispatch) {
 
 func init() {
 	luaRegisterFunction("me", luaFuncMe)
-	eventListenerAttach("act:parsed_log_event", findLocalPlayerLogLine)
+	eventListenerAttach("act:log_line", findLocalPlayerLogLine)
 	eventListenerAttach("act:combatant", findLocalPlayerCombatant)
 }

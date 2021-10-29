@@ -134,7 +134,7 @@ namespace ACT_Plugin
             this.scriptDaemon = new Process();
             this.scriptDaemon.StartInfo.FileName = this.getPluginDirectory() + "\\fflua_server.exe";
             this.scriptDaemon.StartInfo.CreateNoWindow = true;
-            this.scriptDaemon.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            //this.scriptDaemon.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
             this.scriptDaemon.Start();
             Thread.Sleep(250);
             // status label

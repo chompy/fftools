@@ -1,16 +1,19 @@
 broilCount = 0
 
-local function log_line(l)
-    matches = regex_match("15:.*:(.*):409D:Broil III:", l.log_line)
-    if matches == nil or matches[2] == nil then
-        return
-    end
-    if me().name == matches[2] then
+local function on_log(l)
+    if l.ability_id == 0x409D and me().id == l.source_id then
         broilCount = broilCount + 1
         act_say(broilCount)
     end
 end
 
 function init()
-    event_attach("act:log_line", log_line)
+    event_attach("act:log_line", on_log)
+end
+
+function info()
+    return {
+        name = "Broil Counter",
+        desc = "Counters the number of Broil casts."
+    }
 end
