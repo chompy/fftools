@@ -45,6 +45,10 @@ func dataLoadFile(name string) error {
 
 func luaFuncDataSet(L *lua.LState) int {
 	key := L.ToString(1)
+	if key == "" {
+		logLuaWarn(L, "Invalid key for data_set.")
+		return 0
+	}
 	val := L.Get(2)
 	scriptName := L.GetGlobal(luaGlobalScriptName).String()
 	if luaData[scriptName] == nil {
@@ -53,33 +57,7 @@ func luaFuncDataSet(L *lua.LState) int {
 			return 0
 		}
 	}
-	switch val.Type() {
-	case lua.LTNumber:
-		{
-			luaData[scriptName][key] = float64(val.(lua.LNumber))
-			break
-		}
-	case lua.LTString:
-		{
-			luaData[scriptName][key] = string(val.(lua.LString))
-			break
-		}
-	case lua.LTBool:
-		{
-			luaData[scriptName][key] = bool(val.(lua.LBool))
-			break
-		}
-	case lua.LTNil:
-		{
-			luaData[scriptName][key] = nil
-			break
-		}
-	default:
-		{
-			logLuaWarn(L, "Invalid data type for data_set.")
-			return 0
-		}
-	}
+	luaData[scriptName][key] = valueLuaToGo(val)
 	if err := dataSaveFile(scriptName); err != nil {
 		logLuaWarn(L, err.Error())
 		return 0
@@ -101,25 +79,8 @@ func luaFuncDataGet(L *lua.LState) int {
 			return 0
 		}
 	}
-	val := luaData[scriptName][key]
-	switch val := val.(type) {
-	case string:
-		{
-			L.Push(lua.LString(val))
-			return 1
-		}
-	case float64:
-		{
-			L.Push(lua.LNumber(val))
-			return 1
-		}
-	case bool:
-		{
-			L.Push(lua.LBool(val))
-			return 1
-		}
-	}
-	return 0
+	L.Push(valueGoToLua(luaData[scriptName][key]))
+	return 1
 }
 
 func init() {

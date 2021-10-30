@@ -10,6 +10,7 @@ import (
 )
 
 const configScriptsEnabledFile = "enabled.json"
+const luaDefaultConfigFile = "default.yaml"
 
 func configGetPath() string {
 	return filepath.Join(getBasePath(), configPath)
@@ -63,11 +64,37 @@ func configSetScriptEnabled(name string, enable bool) error {
 	return ioutil.WriteFile(configGetScriptsEnabledPath(), enabledScriptsJson, 0755)
 }
 
+func configGetPathToScriptDefaultConfig(name string) (string, error) {
+	pathToFile := filepath.Join(luaGetScriptPath(), name, luaDefaultConfigFile)
+	if _, err := os.Stat(pathToFile); err != nil {
+		if os.IsNotExist(err) {
+			return "", ErrDefaultConfigNotFound
+		}
+		return "", err
+	}
+	return pathToFile, nil
+}
+
 func configLoadScriptConfig(name string) (map[string]interface{}, error) {
 	pathTo := configGetScriptConfigPath(name)
 	raw, err := ioutil.ReadFile(pathTo)
 	if err != nil {
-		return nil, err
+		if !os.IsNotExist(err) {
+			return nil, err
+		}
+		// copy default config file
+		defaultPath, err := configGetPathToScriptDefaultConfig(name)
+		if err != nil {
+			return nil, err
+		}
+		raw, err = ioutil.ReadFile(defaultPath)
+		if err != nil {
+			return nil, err
+		}
+		if err := ioutil.WriteFile(pathTo, raw, 0755); err != nil {
+			return nil, err
+		}
+		logInfo("Created default config for %s.", name)
 	}
 	out := make(map[string]interface{})
 	if err := yaml.Unmarshal(raw, &out); err != nil {

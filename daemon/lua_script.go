@@ -6,6 +6,9 @@ import (
 	lua "github.com/yuin/gopher-lua"
 )
 
+const luaGlobalScriptName = "_script_name"
+const luaGlobalScriptData = "_script_data"
+
 type luaScript struct {
 	Name       string
 	ScriptName string
@@ -49,6 +52,7 @@ func (ls *luaScript) load() error {
 	ls.L = lua.NewState()
 	// set global script name var
 	ls.L.SetGlobal(luaGlobalScriptName, lua.LString(ls.ScriptName))
+	ls.L.SetGlobal(luaGlobalScriptData, &lua.LUserData{Value: ls})
 	// load script
 	if err := ls.L.DoFile(ls.Path); err != nil {
 		ls.LastError = err

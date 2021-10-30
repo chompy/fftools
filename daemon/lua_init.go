@@ -9,15 +9,12 @@ import (
 	lua "github.com/yuin/gopher-lua"
 )
 
-const luaScriptPath = "scripts"
-const luaGlobalScriptName = "_script_name"
-
 var luaValidScriptNames = []string{"main.lua", "init.lua"}
 var luaFuncs map[string]lua.LGFunction = nil
 var loadedScripts []*luaScript = make([]*luaScript, 0)
 
 func luaGetScriptPath() string {
-	return filepath.Join(getBasePath(), luaScriptPath)
+	return filepath.Join(getBasePath(), scriptPath)
 }
 
 func luaGetAvailableScriptNames() []string {
