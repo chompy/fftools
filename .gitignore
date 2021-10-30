@@ -2,3 +2,5 @@
 *.exe~
 /config/*
 !/config/.placeholder
+/data/*
+!/data/.placeholder

@@ -17,8 +17,7 @@ var luaFuncs map[string]lua.LGFunction = nil
 var loadedScripts []*luaScript = make([]*luaScript, 0)
 
 func luaGetScriptPath() string {
-	exePath, _ := os.Executable()
-	return filepath.Join(filepath.Dir(exePath), luaScriptPath)
+	return filepath.Join(getBasePath(), luaScriptPath)
 }
 
 func luaGetAvailableScriptNames() []string {
