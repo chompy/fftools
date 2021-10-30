@@ -35,6 +35,7 @@ func luaListenCallback(event *eventDispatch) {
 			break
 		}
 	}
+	L.SetTop(0)
 	L.Push(callback)
 	if arg != nil {
 		argCount = 1

@@ -421,6 +421,8 @@ namespace ACT_Plugin
             prepareInt32(ref sendData, cd.Hits);                           // number of attacks
             prepareInt32(ref sendData, cd.Heals);                          // number of heals performed
             prepareInt32(ref sendData, cd.Kills);                          // number of kills
+            prepareInt32(ref sendData, cd.CritHits);                       // number of critical hits
+            prepareInt32(ref sendData, cd.CritHeals);                      // number of critical heals
             // send
             sendUdp(ref sendData);
         }

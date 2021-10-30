@@ -13,12 +13,8 @@ var luaValidScriptNames = []string{"main.lua", "init.lua"}
 var luaFuncs map[string]lua.LGFunction = nil
 var loadedScripts []*luaScript = make([]*luaScript, 0)
 
-func luaGetScriptPath() string {
-	return filepath.Join(getBasePath(), scriptPath)
-}
-
 func luaGetAvailableScriptNames() []string {
-	dirList, _ := ioutil.ReadDir(luaGetScriptPath())
+	dirList, _ := ioutil.ReadDir(getScriptPath())
 	out := make([]string, 0)
 	for _, fileInfo := range dirList {
 		name := fileInfo.Name()
@@ -32,7 +28,7 @@ func luaGetAvailableScriptNames() []string {
 		}
 		// script inside directory
 		for _, validScriptName := range luaValidScriptNames {
-			pathTo := filepath.Join(luaGetScriptPath(), name, validScriptName)
+			pathTo := filepath.Join(getScriptPath(), name, validScriptName)
 			if _, err := os.Stat(pathTo); err == nil {
 				out = append(out, name)
 				break
@@ -62,12 +58,12 @@ func luaGetEnabledScriptNames() []string {
 }
 
 func luaGetPathToScript(name string) (string, error) {
-	pathToFile := filepath.Join(luaGetScriptPath(), name+".lua")
+	pathToFile := filepath.Join(getScriptPath(), name+".lua")
 	if _, err := os.Stat(pathToFile); err == nil {
 		return pathToFile, nil
 	}
 	for _, validScriptName := range luaValidScriptNames {
-		pathToFile = filepath.Join(luaGetScriptPath(), name, validScriptName)
+		pathToFile = filepath.Join(getScriptPath(), name, validScriptName)
 		if _, err := os.Stat(pathToFile); err == nil {
 			return pathToFile, nil
 		}

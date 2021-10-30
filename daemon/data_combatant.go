@@ -41,6 +41,8 @@ type Combatant struct {
 	Hits         int32     `json:"hits"`
 	Heals        int32     `json:"heals"`
 	Kills        int32     `json:"kills"`
+	CritHits     int32     `json:"critical_hits"`
+	CritHeals    int32     `json:"critical_heals"`
 }
 
 // ToBytes - Convert to bytes
@@ -58,6 +60,8 @@ func (c *Combatant) ToBytes() []byte {
 	writeInt32(&data, c.Hits)
 	writeInt32(&data, c.Heals)
 	writeInt32(&data, c.Kills)
+	writeInt32(&data, c.CritHits)
+	writeInt32(&data, c.CritHeals)
 	writeTime(&data, c.Time)
 	return data
 }
@@ -79,6 +83,8 @@ func (c *Combatant) FromBytes(data []byte) error {
 	c.Hits = readInt32(data, &pos)
 	c.Heals = readInt32(data, &pos)
 	c.Kills = readInt32(data, &pos)
+	c.CritHits = readInt32(data, &pos)
+	c.CritHeals = readInt32(data, &pos)
 	c.Time = time.Now()
 	return nil
 }
@@ -97,6 +103,8 @@ func (c Combatant) ToLua() *lua.LTable {
 	t.RawSetString("hits", lua.LNumber(c.Hits))
 	t.RawSetString("heals", lua.LNumber(c.Heals))
 	t.RawSetString("kills", lua.LNumber(c.Kills))
+	t.RawSetString("critical_hits", lua.LNumber(c.CritHits))
+	t.RawSetString("critical_heals", lua.LNumber(c.CritHeals))
 	t.RawSetString("__goobject", &lua.LUserData{Value: c})
 	return t
 }

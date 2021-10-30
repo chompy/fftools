@@ -97,10 +97,10 @@ func valueLuaToGo(value lua.LValue) interface{} {
 	}
 }
 
-func valueLuaTableToGo(value *lua.LTable) map[interface{}]interface{} {
-	out := make(map[interface{}]interface{})
+func valueLuaTableToGo(value *lua.LTable) map[string]interface{} {
+	out := make(map[string]interface{})
 	value.ForEach(func(k lua.LValue, v lua.LValue) {
-		out[valueLuaToGo(k)] = valueLuaToGo(v)
+		out[k.String()] = valueLuaToGo(v)
 	})
 	return out
 }

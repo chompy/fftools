@@ -65,7 +65,7 @@ func configSetScriptEnabled(name string, enable bool) error {
 }
 
 func configGetPathToScriptDefaultConfig(name string) (string, error) {
-	pathToFile := filepath.Join(luaGetScriptPath(), name, luaDefaultConfigFile)
+	pathToFile := filepath.Join(getScriptPath(), name, luaDefaultConfigFile)
 	if _, err := os.Stat(pathToFile); err != nil {
 		if os.IsNotExist(err) {
 			return "", ErrDefaultConfigNotFound

@@ -81,6 +81,7 @@ func (ls *luaScript) init() error {
 	}
 	logLuaInfo(ls.L, "Enabled.")
 	initFunc := ls.L.GetGlobal("init")
+	ls.L.SetTop(0)
 	ls.L.Push(initFunc)
 	err := ls.L.PCall(0, 0, nil)
 	if err != nil {
@@ -94,6 +95,7 @@ func (ls *luaScript) init() error {
 }
 
 func (ls *luaScript) info() error {
+	ls.L.SetTop(0)
 	infoFunc := ls.L.GetGlobal("info")
 	ls.L.Push(infoFunc)
 	if err := ls.L.PCall(0, 1, nil); err != nil {
