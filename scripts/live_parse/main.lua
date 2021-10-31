@@ -1,28 +1,10 @@
-local encounter = {}
-local combatants = {}
-
-local function on_encounter(e)
-    encounter = e
-end
-
-local function on_encounter_change(e)
-    combatants = {}
-end
-
-local function on_combatant(c)
-    combatants[c.id] = c
-end
-
 function init()
-    event_attach("act:encounter", on_encounter)
-    event_attach("act:encounter:change", on_encounter_change)
-    event_attach("act:combatant", on_combatant)
 end
 
 function web(req)
     return {
-        encounter = encounter,
-        combatants = combatants,
+        encounter = act_encounter(),
+        combatants = act_combatants(),
         me = me()
     }
 end

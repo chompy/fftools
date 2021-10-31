@@ -433,12 +433,10 @@ func ParseLogEvent(logLine LogLine) (ParsedLogEvent, error) {
 }
 
 func (l ParsedLogEvent) ToLua() *lua.LTable {
-
 	t := valueGoToLuaTable(l.Values)
 	t.RawSetString("type", lua.LNumber(l.Type))
 	t.RawSetString("raw", lua.LString(l.Raw))
 	t.RawSetString("log_line", lua.LString(l.Raw))
 	t.RawSetString("time", lua.LNumber(l.Time.Unix()))
-
 	return t
 }
