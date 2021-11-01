@@ -26,7 +26,7 @@ local function calculate()
     elseif trine_tracker == "rby" then
         say("d","c")
     elseif trine_tracker == "ryb" then
-        say("c","a")
+        say("a","c")
     end
     trine_tracker = ""
 end

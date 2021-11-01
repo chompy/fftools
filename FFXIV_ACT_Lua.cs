@@ -73,6 +73,7 @@ namespace ACT_Plugin
         private System.Windows.Forms.Button formScriptEnable;   // Form element button to enable/disable script
         private System.Windows.Forms.Button formScriptConfig;   // Form element button to open script config file in notepad
         private System.Windows.Forms.Button formScriptReload;   // Form element button to reload scripts
+        private System.Windows.Forms.Button formWebOpen;        // Form element button to open web page for script
 
         
 
@@ -124,6 +125,15 @@ namespace ACT_Plugin
             this.formScriptReload.Enabled = true;
             this.Controls.Add(this.formScriptReload);
 
+            this.formWebOpen = new System.Windows.Forms.Button();
+            this.formWebOpen.Name = "WebOpen";
+            this.formWebOpen.AutoSize = true;
+            this.formWebOpen.Location = new System.Drawing.Point(406, this.Height + 16);
+            this.formWebOpen.Size = new System.Drawing.Size(82, 24);
+            this.formWebOpen.Text = "Open Webpage";
+            this.formWebOpen.Enabled = false;
+            this.Controls.Add(this.formWebOpen);
+
             this.ResumeLayout(false);
             this.PerformLayout();
         }
@@ -151,6 +161,8 @@ namespace ACT_Plugin
             this.formScriptList.SelectedIndexChanged += ScriptList_SelectedIndexChanged;
             this.formScriptEnable.Click += ScriptEnable_Click;
             this.formScriptReload.Click += ScriptReload_Click;
+            this.formScriptConfig.Click += ScriptConfig_Click;
+            this.formWebOpen.Click += ScriptWeb_Click;
             // /
 			pluginScreenSpace.Controls.Add(this);	// Add this UserControl to the tab ACT provides
             // set tab title
@@ -171,6 +183,8 @@ namespace ACT_Plugin
             this.formScriptList.SelectedIndexChanged -= ScriptList_SelectedIndexChanged;
             this.formScriptEnable.Click -= ScriptEnable_Click;
             this.formScriptReload.Click -= ScriptReload_Click;
+            this.formScriptConfig.Click -= ScriptConfig_Click;
+            this.formWebOpen.Click -= ScriptWeb_Click;
             //this.buttonSave.Click -= buttonSave_OnClick;
             // close udp client
             udpClient.Close();
@@ -223,6 +237,12 @@ namespace ACT_Plugin
             if (this.scriptData[index][1] == "") {
                 this.formScriptEnable.Text = "Enable";
             }
+            string configPath = this.getScriptConfigFile(this.scriptData[index][0]);
+            this.formScriptConfig.Enabled = false;
+            if (configPath != "") {
+                this.formScriptConfig.Enabled = true;
+            }
+            this.formWebOpen.Enabled = true;
         }
 
         void ScriptEnable_Click(object sender, System.EventArgs e)
@@ -246,6 +266,23 @@ namespace ACT_Plugin
             this.formScriptList.Enabled = false;
             this.formScriptEnable.Enabled = false;
             this.sendScriptRequest();
+        }
+
+        void ScriptConfig_Click(object sender, System.EventArgs e)
+        {
+            string value = this.formScriptList.SelectedItem.ToString();
+            int index = this.formScriptList.FindString(value);
+            string name = this.scriptData[index][0];
+            string path = this.getScriptConfigFile(name);
+            Process.Start("notepad.exe", path);
+        }
+
+        void ScriptWeb_Click(object sender, System.EventArgs e)
+        {
+            string value = this.formScriptList.SelectedItem.ToString();
+            int index = this.formScriptList.FindString(value);
+            string name = this.scriptData[index][0];
+            Process.Start("http://localhost:31594/" + name + "/");
         }
 
         void udpConnect()
@@ -501,6 +538,15 @@ namespace ACT_Plugin
                 }
             }
             return "";
+        }
+
+        string getScriptConfigFile(string name)
+        {
+            string path = getPluginDirectory() + "\\config\\" + name + ".yaml";
+            if (!File.Exists(path)) {
+                return "";
+            }
+            return path;
         }
 
 
