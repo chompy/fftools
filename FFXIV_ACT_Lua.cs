@@ -55,7 +55,7 @@ namespace ACT_Plugin
         const byte DATA_TYPE_ACT_END = 206;                     // Data type, flag to end encounter
         const byte DATA_TYPE_ACT_ERR = 207;                     // Data type, flag that an error has occured
 
-        const long TTS_TIMEOUT = 3000;                          // Time in miliseconds to timeout TTS
+        const long TTS_TIMEOUT = 500;                           // Time in miliseconds to timeout TTS
         
         private Label lblStatus;                                // The status label that appears in ACT's Plugin tab
         private UdpClient udpClient;                            // UDP client used to send data
@@ -85,15 +85,17 @@ namespace ACT_Plugin
             this.formScriptList = new System.Windows.Forms.ListBox();
             this.formScriptList.Name = "ScriptList";
             this.formScriptList.Location = new System.Drawing.Point(12, 12);
-            this.formScriptList.MinimumSize = new System.Drawing.Size(245, this.Height);
-            this.formScriptList.AutoSize = true;
+            this.formScriptList.MinimumSize = new System.Drawing.Size(245, 100);
+            this.formScriptList.AutoSize = false;
+            this.formScriptList.Dock = DockStyle.Bottom|DockStyle.Top;
+            this.formScriptList.Font = new System.Drawing.Font("Consolas", 10);
             this.Controls.Add(this.formScriptList);
 
             this.formScriptInfo = new System.Windows.Forms.TextBox();
             this.formScriptInfo.Name = "ScriptInfo";
-            this.formScriptInfo.Location = new System.Drawing.Point(260, 12);
-            this.formScriptInfo.MinimumSize = new System.Drawing.Size(245, this.Height);
-            this.formScriptInfo.AutoSize = true;
+            this.formScriptInfo.Location = new System.Drawing.Point(252, 0);
+            this.formScriptInfo.MinimumSize = new System.Drawing.Size(245, 200);
+            this.formScriptInfo.AutoSize = false;
             this.formScriptInfo.ReadOnly = true;
             this.formScriptInfo.Multiline = true;
             this.Controls.Add(this.formScriptInfo);
@@ -101,7 +103,7 @@ namespace ACT_Plugin
             this.formScriptEnable = new System.Windows.Forms.Button();
             this.formScriptEnable.Name = "ScriptEnable";
             this.formScriptEnable.AutoSize = true;
-            this.formScriptEnable.Location = new System.Drawing.Point(260, this.Height + 16);
+            this.formScriptEnable.Location = new System.Drawing.Point(252, this.formScriptInfo.Height + 16);
             this.formScriptEnable.Size = new System.Drawing.Size(64, 24);
             this.formScriptEnable.Text = "Enable";
             this.formScriptEnable.Enabled = false;
@@ -110,7 +112,7 @@ namespace ACT_Plugin
             this.formScriptConfig = new System.Windows.Forms.Button();
             this.formScriptConfig.Name = "ScriptConfig";
             this.formScriptConfig.AutoSize = true;
-            this.formScriptConfig.Location = new System.Drawing.Point(324, this.Height + 16);
+            this.formScriptConfig.Location = new System.Drawing.Point(318, this.formScriptInfo.Height + 16);
             this.formScriptConfig.Size = new System.Drawing.Size(82, 24);
             this.formScriptConfig.Text = "Edit Config";
             this.formScriptConfig.Enabled = false;
@@ -119,16 +121,16 @@ namespace ACT_Plugin
             this.formScriptReload = new System.Windows.Forms.Button();
             this.formScriptReload.Name = "ScriptReload";
             this.formScriptReload.AutoSize = true;
-            this.formScriptReload.Location = new System.Drawing.Point(12, this.Height + 16);
+            this.formScriptReload.Location = new System.Drawing.Point(252, this.formScriptInfo.Height + 48);
             this.formScriptReload.Size = new System.Drawing.Size(82, 24);
-            this.formScriptReload.Text = "Refresh";
+            this.formScriptReload.Text = "Refresh List";
             this.formScriptReload.Enabled = true;
             this.Controls.Add(this.formScriptReload);
 
             this.formWebOpen = new System.Windows.Forms.Button();
             this.formWebOpen.Name = "WebOpen";
             this.formWebOpen.AutoSize = true;
-            this.formWebOpen.Location = new System.Drawing.Point(406, this.Height + 16);
+            this.formWebOpen.Location = new System.Drawing.Point(402, this.formScriptInfo.Height + 16);
             this.formWebOpen.Size = new System.Drawing.Size(82, 24);
             this.formWebOpen.Text = "Open Webpage";
             this.formWebOpen.Enabled = false;
@@ -223,6 +225,9 @@ namespace ACT_Plugin
 
         void ScriptList_SelectedIndexChanged(object sender, System.EventArgs e)
         {
+            if (this.formScriptList.SelectedItem == null) {
+                return;
+            }
             string value = this.formScriptList.SelectedItem.ToString();
             int index = this.formScriptList.FindString(value);
             string titleSep = new String('-', 64);

@@ -1,3 +1,4 @@
+local has_start = false
 local trine_tracker = ""
 local trine_markers = {
     a = "center",
@@ -11,24 +12,33 @@ local function say(from, to)
 end
 
 local function calculate()
-    if #trine_tracker < 3 then
+    if #trine_tracker < 2 then
         return
+    elseif #trine_tracker == 2 and not has_start then
+        if trine_tracker == "yb" or trine_tracker == "by" then
+            act_say(trine_markers.c)
+        elseif trine_tracker == "br" or trine_tracker == "rb" then
+            act_say(trine_markers.d)
+        elseif trine_tracker == "yr" then
+            act_say(trine_markers.b)
+        elseif trine_tracker == "ry" then
+            act_say(trine_markers.a)
+        end
+        has_start = true
+        return
+    elseif #trine_tracker == 3 and has_start then
+        if trine_tracker == "ybr" or trine_tracker == "yrb" then
+            act_say("to " .. trine_markers.d)
+        elseif trine_tracker == "rby" or trine_tracker == "ryb" then
+            act_say("to " .. trine_markers.c)
+        elseif trine_tracker == "byr" then
+            act_say("to " .. trine_markers.a)
+        elseif trine_tracker == "bry" then
+            act_say("to " .. trine_markers.b)
+        end
+        trine_tracker = ""
+        has_start = false
     end
-    log_info("Found trine '" .. string.upper(trine_tracker) .. ".'")
-    if trine_tracker == "ybr" then
-        say("c","d")
-    elseif trine_tracker == "yrb" then
-        say("b","d")
-    elseif trine_tracker == "byr" then
-        say("c","a")
-    elseif trine_tracker == "bry" then
-        say("d","b")
-    elseif trine_tracker == "rby" then
-        say("d","c")
-    elseif trine_tracker == "ryb" then
-        say("a","c")
-    end
-    trine_tracker = ""
 end
 
 local function on_log(l)
@@ -38,6 +48,7 @@ local function on_log(l)
     -- reset
     if l.ability_id == 0x488E then
         trine_tracker = ""
+        has_start = false
     -- add trine
     elseif l.ability_id == 0x488F and math.floor(l.source_x) == 100 then
         local ypos = math.floor(l.source_y)

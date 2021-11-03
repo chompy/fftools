@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -41,6 +42,14 @@ func initWeb() {
 		}
 		// serve up static file
 		pathTo := filepath.Join(getScriptWebPath(scriptName), strings.Trim(strings.Join(pathSplit[1:], "/"), "/"))
+		if _, err := os.Stat(pathTo); err != nil {
+			if os.IsNotExist(err) {
+				webServeB64(webNotFound, http.StatusNotFound, w)
+				return
+			}
+			webServeB64(webError, http.StatusInternalServerError, w)
+			return
+		}
 		// TODO custom not found
 		http.ServeFile(w, r, pathTo)
 	})
