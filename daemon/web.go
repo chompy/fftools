@@ -12,8 +12,6 @@ import (
 	lua "github.com/yuin/gopher-lua"
 )
 
-const webListenPort = 31594
-
 func initWeb() {
 	http.HandleFunc("/favicon.ico", webServeFavicon)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -37,6 +35,8 @@ func initWeb() {
 		}
 		// execute lua script end point
 		if len(pathSplit) > 1 && pathSplit[1] == "_data" {
+			luaScript.Lock.Lock()
+			defer luaScript.Lock.Unlock()
 			webServeLua(luaScript.L, w, r)
 			return
 		}
@@ -53,7 +53,8 @@ func initWeb() {
 		// TODO custom not found
 		http.ServeFile(w, r, pathTo)
 	})
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", webListenPort), nil); err != nil {
+	config := configAppLoad()
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", config.PortWeb), nil); err != nil {
 		logWarn(err.Error())
 	}
 }

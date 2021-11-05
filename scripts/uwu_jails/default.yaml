@@ -1,0 +1,20 @@
+# define order of jail callouts
+# can either be jobs or specific player names
+order:
+    - PLD
+    - WAR
+    - DRK
+    - GNB
+    - DRG
+    - NIN
+    - SAM
+    - MNK
+    - DNC
+    - BRD
+    - MCH
+    - BLM
+    - SMN
+    - RDM
+    - WHM
+    - SCH
+    - AST

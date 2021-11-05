@@ -10,15 +10,15 @@ const dataTypeActScriptDisable = 203
 const dataTypeActPlayer = 204
 const dataTypeActSay = 205
 const dataTypeActEnd = 206
-const actListenPort = 31593
 
 var actConn *net.UDPConn = nil
 var remoteAddr *net.UDPAddr = nil
 var hasRequestedPlayer = false
 
 func actListenUDP() error {
+	config := configAppLoad()
 	addr := net.UDPAddr{
-		Port: actListenPort,
+		Port: int(config.PortData),
 		IP:   net.ParseIP("127.0.0.1"),
 	}
 	var err error

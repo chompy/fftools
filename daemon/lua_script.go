@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"sync"
 
 	lua "github.com/yuin/gopher-lua"
 )
@@ -18,6 +19,7 @@ type luaScript struct {
 	Enabled    bool
 	Config     map[string]interface{}
 	L          *lua.LState
+	Lock       sync.Mutex
 }
 
 func luaLoadScript(name string) (*luaScript, error) {
@@ -35,10 +37,6 @@ func luaLoadScript(name string) (*luaScript, error) {
 	if err := ls.load(); err != nil {
 		return ls, err
 	}
-	ls.Config, err = configLoadScriptConfig(name)
-	if err != nil && !os.IsNotExist(err) {
-		logLuaWarn(ls.L, err.Error())
-	}
 	if err := ls.info(); err != nil {
 		return ls, err
 	}
@@ -46,8 +44,16 @@ func luaLoadScript(name string) (*luaScript, error) {
 }
 
 func (ls *luaScript) load() error {
+	ls.Lock.Lock()
+	defer ls.Lock.Unlock()
 	ls.close()
 	ls.LastError = nil
+	// config
+	var err error
+	ls.Config, err = configLoadScriptConfig(ls.ScriptName)
+	if err != nil && !os.IsNotExist(err) {
+		logLuaWarn(ls.L, err.Error())
+	}
 	// init lua
 	ls.L = lua.NewState()
 	// set global script name var
@@ -59,9 +65,13 @@ func (ls *luaScript) load() error {
 		return err
 	}
 	// set global functions
+	funcTable := &lua.LTable{}
 	for name, function := range luaFuncs {
+		funcTable.RawSetString(name, ls.L.NewFunction(function))
 		ls.L.SetGlobal(name, ls.L.NewFunction(function))
 	}
+	ls.L.SetGlobal("ffl", funcTable)
+
 	logLuaInfo(ls.L, "Loaded.")
 	return nil
 }
@@ -79,6 +89,8 @@ func (ls *luaScript) init() error {
 	if !ls.Enabled {
 		return nil
 	}
+	ls.Lock.Lock()
+	defer ls.Lock.Unlock()
 	logLuaInfo(ls.L, "Enabled.")
 	initFunc := ls.L.GetGlobal("init")
 	ls.L.SetTop(0)
@@ -95,6 +107,8 @@ func (ls *luaScript) init() error {
 }
 
 func (ls *luaScript) info() error {
+	ls.Lock.Lock()
+	defer ls.Lock.Unlock()
 	ls.L.SetTop(0)
 	infoFunc := ls.L.GetGlobal("info")
 	ls.L.Push(infoFunc)

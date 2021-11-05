@@ -9,8 +9,16 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const configScriptsEnabledFile = "enabled.json"
-const luaDefaultConfigFile = "default.yaml"
+const configScriptsEnabledFile = "_enabled.json"
+const configLuaDefault = "default.yaml"
+
+var configLoadedApp *configApp
+
+type configApp struct {
+	PortData   uint16 `yaml:"port_data"`
+	PortWeb    uint16 `yaml:"port_web"`
+	LogMaxSize int64  `yaml:"log_max_size"`
+}
 
 func configGetPath() string {
 	return filepath.Join(getBasePath(), configPath)
@@ -65,7 +73,7 @@ func configSetScriptEnabled(name string, enable bool) error {
 }
 
 func configGetPathToScriptDefaultConfig(name string) (string, error) {
-	pathToFile := filepath.Join(getScriptPath(), name, luaDefaultConfigFile)
+	pathToFile := filepath.Join(getScriptPath(), name, configLuaDefault)
 	if _, err := os.Stat(pathToFile); err != nil {
 		if os.IsNotExist(err) {
 			return "", ErrDefaultConfigNotFound
@@ -101,4 +109,28 @@ func configLoadScriptConfig(name string) (map[string]interface{}, error) {
 		return nil, err
 	}
 	return out, nil
+}
+
+func configAppDefault() *configApp {
+	return &configApp{
+		PortData:   31593,
+		PortWeb:    31594,
+		LogMaxSize: 262144, // 256KB
+	}
+}
+
+func configAppLoad() *configApp {
+	if configLoadedApp != nil {
+		return configLoadedApp
+	}
+	config := configAppDefault()
+	rawConfig, err := ioutil.ReadFile(configGetScriptConfigPath("_app"))
+	if err != nil {
+		return config
+	}
+	if err := yaml.Unmarshal(rawConfig, config); err != nil {
+		logWarn(err.Error())
+	}
+	configLoadedApp = config
+	return config
 }

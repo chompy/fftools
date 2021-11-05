@@ -1,0 +1,7 @@
+- Web view proxy server
+- Seperate log files for each script with log rotation
+- View logs from ACT plugin
+- Import scripts from Git
+- Script auto update
+- Script repository
+- ACT plugin auto update

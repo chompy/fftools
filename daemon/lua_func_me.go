@@ -10,11 +10,11 @@ var localPlayerCombatant = Combatant{ID: 0, Job: ""}
 
 func luaFuncMe(L *lua.LState) int {
 	t := &lua.LTable{}
-	t.RawSetString("name", lua.LString(localPlayerName))
-	//t.RawSetString("name", lua.LString("Qunara Sivra"))
-	t.RawSetString("job", lua.LString(localPlayerCombatant.Job))
-	t.RawSetString("id", lua.LNumber(localPlayerID))
-	//t.RawSetString("id", lua.LNumber(275303105))
+	//t.RawSetString("name", lua.LString(localPlayerName))
+	t.RawSetString("name", lua.LString("Minda Silva"))
+	//t.RawSetString("job", lua.LString(localPlayerCombatant.Job))
+	//t.RawSetString("id", lua.LNumber(localPlayerID))
+	t.RawSetString("id", lua.LNumber(276036276))
 	L.Push(t)
 	return 1
 }
