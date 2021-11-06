@@ -4,6 +4,7 @@ import (
 	"log"
 	"runtime"
 	"strconv"
+	"strings"
 )
 
 // hexToInt converts hex string to an integer.
@@ -17,4 +18,22 @@ func hexToInt(hexString string) (int, error) {
 		log.Println(err.Error(), hexString, fn, line)
 	}
 	return int(output), err
+}
+
+const roleTank = "tank"
+const roleDps = "dps"
+const roleHealer = "healer"
+
+func jobGetRole(job string) string {
+	switch strings.ToLower(job) {
+	case "pld", "war", "drk", "gnb":
+		{
+			return roleTank
+		}
+	case "whm", "sch", "ast", "sge":
+		{
+			return roleHealer
+		}
+	}
+	return roleDps
 }

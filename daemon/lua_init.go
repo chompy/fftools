@@ -134,18 +134,7 @@ func luaEnableScripts() {
 		if enabled && !script.Enabled {
 			script.Enabled = true
 			// previously disabled, now enabled
-			script.close()
-			if err := script.load(); err != nil {
-				logLuaWarn(script.L, err.Error())
-				actError(err, script.ScriptName)
-				continue
-			}
-			if err := script.info(); err != nil {
-				logLuaWarn(script.L, err.Error())
-				actError(err, script.ScriptName)
-				continue
-			}
-			if err := script.init(); err != nil {
+			if err := script.reload(); err != nil {
 				logLuaWarn(script.L, err.Error())
 				actError(err, script.ScriptName)
 				continue

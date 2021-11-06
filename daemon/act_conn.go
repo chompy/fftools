@@ -7,9 +7,10 @@ import (
 const dataTypeActScripts = 201
 const dataTypeActScriptEnable = 202
 const dataTypeActScriptDisable = 203
-const dataTypeActPlayer = 204
-const dataTypeActSay = 205
-const dataTypeActEnd = 206
+const dataTypeActScriptReload = 204
+const dataTypeActPlayer = 205
+const dataTypeActSay = 206
+const dataTypeActEnd = 207
 
 var actConn *net.UDPConn = nil
 var remoteAddr *net.UDPAddr = nil
@@ -98,6 +99,21 @@ func actListenUDP() error {
 				}
 				luaEnableScripts()
 				actSendScripts()
+				break
+			}
+		case dataTypeActScriptReload:
+			{
+				pos := 1
+				scriptName := readString(buf[:], &pos)
+				for _, script := range loadedScripts {
+					if script.ScriptName == scriptName {
+						logInfo("[ACT] Reload '%s' script.", scriptName)
+						if err := script.reload(); err != nil {
+							logLuaWarn(script.L, err.Error())
+						}
+						break
+					}
+				}
 				break
 			}
 		}

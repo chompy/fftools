@@ -37,6 +37,10 @@ func initWeb() {
 		if len(pathSplit) > 1 && pathSplit[1] == "_data" {
 			luaScript.Lock.Lock()
 			defer luaScript.Lock.Unlock()
+			if !luaScript.Enabled || luaScript.LastError != nil {
+				webServeB64(webError, http.StatusInternalServerError, w)
+				return
+			}
 			webServeLua(luaScript.L, w, r)
 			return
 		}

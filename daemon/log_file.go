@@ -37,6 +37,11 @@ func (w *LogFileWriter) open() error {
 func (w *LogFileWriter) Write(output []byte) (int, error) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
+	if w.fp == nil {
+		if err := w.open(); err != nil {
+			return 0, err
+		}
+	}
 	//config := configAppLoad()
 	w.size += int64(len(output))
 	return w.fp.Write(output)

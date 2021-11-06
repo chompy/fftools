@@ -1,3 +1,3 @@
 #!/bin/sh
 cd daemon
-go build -o ../fflua_server.exe
+go build -o ../fflua.exe

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"os"
 	"sync"
 
@@ -51,8 +52,10 @@ func (ls *luaScript) load() error {
 	// config
 	var err error
 	ls.Config, err = configLoadScriptConfig(ls.ScriptName)
-	if err != nil && !os.IsNotExist(err) {
-		logLuaWarn(ls.L, err.Error())
+	if err != nil && !os.IsNotExist(err) && !errors.Is(err, ErrDefaultConfigNotFound) {
+		ls.LastError = err
+		return err
+		//logLuaWarn(ls.L, err.Error())
 	}
 	// init lua
 	ls.L = lua.NewState()
@@ -73,6 +76,20 @@ func (ls *luaScript) load() error {
 	ls.L.SetGlobal("ffl", funcTable)
 
 	logLuaInfo(ls.L, "Loaded.")
+	return nil
+}
+
+func (ls *luaScript) reload() error {
+	ls.close()
+	if err := ls.load(); err != nil {
+		return err
+	}
+	if err := ls.info(); err != nil {
+		return err
+	}
+	if err := ls.init(); err != nil {
+		return err
+	}
 	return nil
 }
 

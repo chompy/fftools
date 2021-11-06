@@ -50,10 +50,11 @@ namespace ACT_Plugin
         const byte DATA_TYPE_SCRIPT = 201;                      // Data type, information about an available lua script
         const byte DATA_TYPE_SCRIPT_ENABLE = 202;               // Data type, enable script
         const byte DATA_TYPE_SCRIPT_DISABLE = 203;              // Data type, disable script
-        const byte DATA_TYPE_PLAYER = 204;                      // Data type, request to send last player log line
-        const byte DATA_TYPE_ACT_SAY = 205;                     // Data type, speak with TTS
-        const byte DATA_TYPE_ACT_END = 206;                     // Data type, flag to end encounter
-        const byte DATA_TYPE_ACT_ERR = 207;                     // Data type, flag that an error has occured
+        const byte DATA_TYPE_SCRIPT_RELOAD = 204;               // Data type, reload script
+        const byte DATA_TYPE_PLAYER = 205;                      // Data type, request to send last player log line
+        const byte DATA_TYPE_ACT_SAY = 206;                     // Data type, speak with TTS
+        const byte DATA_TYPE_ACT_END = 207;                     // Data type, flag to end encounter
+        const byte DATA_TYPE_ACT_ERR = 208;                     // Data type, flag that an error has occured
 
         const long TTS_TIMEOUT = 500;                           // Time in miliseconds to timeout TTS
         
@@ -67,6 +68,7 @@ namespace ACT_Plugin
         private LogLineEventArgs lastPlayerChangeLine;          // Last player change log line
         private string lastScriptSelected;                      // Name of last script selected in list
         private Process scriptDaemon;                           // Instance of script daemon process
+        private FileSystemWatcher watcher;                      // Script config watcher
 
         private System.Windows.Forms.ListBox formScriptList;    // Form element containing list of available Lua scripts
         private System.Windows.Forms.TextBox formScriptInfo;    // Form element containing information about selected script
@@ -144,7 +146,7 @@ namespace ACT_Plugin
         {
             // start daemon
             this.scriptDaemon = new Process();
-            this.scriptDaemon.StartInfo.FileName = this.getPluginDirectory() + "\\fflua_server.exe";
+            this.scriptDaemon.StartInfo.FileName = this.getPluginDirectory() + "\\fflua.exe";
             this.scriptDaemon.StartInfo.CreateNoWindow = true;
             //this.scriptDaemon.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
             this.scriptDaemon.Start();
@@ -173,6 +175,8 @@ namespace ACT_Plugin
                     p.tpPluginSpace.Text = "FFLua";
                 }
             }
+            // enable watcher
+            this.watchScriptConfigs();
         }
 
         public void DeInitPlugin()
@@ -198,7 +202,8 @@ namespace ACT_Plugin
             if (this.scriptDaemon != null) {
                 this.scriptDaemon.Kill();
             }
-
+            // disable watcher
+            this.watcher.EnableRaisingEvents = false;
             // update plugin status text
             lblStatus.Text = "Plugin Exited";
         }
@@ -526,6 +531,14 @@ namespace ACT_Plugin
             sendUdp(ref sendData);
         }
 
+        void sendReloadScript(string name)
+        {
+            List<Byte> sendData = new List<Byte>();
+            sendData.Add(DATA_TYPE_SCRIPT_RELOAD);
+            prepareString(ref sendData, name);
+            sendUdp(ref sendData);
+        }
+
         void ttsSay(string text)
         {
             long now = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
@@ -554,6 +567,22 @@ namespace ACT_Plugin
             return path;
         }
 
+        void watchScriptConfigs()
+        {
+            string path = getPluginDirectory() + "\\config";
+            this.watcher = new FileSystemWatcher();
+            this.watcher.Path = path;
+            this.watcher.NotifyFilter = NotifyFilters.LastWrite;
+            this.watcher.Filter = "*.yaml";
+            this.watcher.Changed += new FileSystemEventHandler(this.onScriptConfigChanges);
+            this.watcher.EnableRaisingEvents = true;
+        }
+
+        void onScriptConfigChanges(object source, FileSystemEventArgs e)
+        {
+            string scriptName = Path.GetFileNameWithoutExtension(e.Name);
+            sendReloadScript(scriptName);
+        }
 
     }
 }
