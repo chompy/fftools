@@ -9,7 +9,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const configScriptsEnabledFile = "_enabled.json"
 const configLuaDefault = "default.yaml"
 
 var configLoadedApp *configApp
@@ -25,7 +24,7 @@ func configGetPath() string {
 }
 
 func configGetScriptsEnabledPath() string {
-	return filepath.Join(configGetPath(), configScriptsEnabledFile)
+	return dataGetPath("_enabled")
 }
 
 func configGetScriptConfigPath(name string) string {

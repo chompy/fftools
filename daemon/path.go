@@ -9,11 +9,12 @@ const configPath = "config"
 const dataPath = "data"
 const scriptPath = "scripts"
 const scriptWebPath = "web"
-const logPath = "log"
+
+//const logPath = "log"
 
 func getBasePath() string {
 	exePath, _ := os.Executable()
-	return filepath.Dir(exePath)
+	return filepath.Join(filepath.Dir(exePath), "..")
 }
 
 func getScriptPath() string {
@@ -24,6 +25,6 @@ func getScriptWebPath(name string) string {
 	return filepath.Join(getScriptPath(), name, scriptWebPath)
 }
 
-func getLogPath() string {
+/*func getLogPath() string {
 	return filepath.Join(getBasePath(), logPath)
-}
+}*/

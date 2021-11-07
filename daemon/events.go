@@ -14,9 +14,9 @@ type eventListener struct {
 
 var eventListeners = make([]*eventListener, 0)
 
-func eventListenerReset() {
+/*func eventListenerReset() {
 	eventListeners = make([]*eventListener, 0)
-}
+}*/
 
 func eventListenerAttach(event string, callback func(*eventDispatch)) *eventListener {
 	if event == "" {

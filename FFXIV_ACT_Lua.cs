@@ -76,6 +76,7 @@ namespace ACT_Plugin
         private System.Windows.Forms.Button formScriptConfig;   // Form element button to open script config file in notepad
         private System.Windows.Forms.Button formScriptReload;   // Form element button to reload scripts
         private System.Windows.Forms.Button formWebOpen;        // Form element button to open web page for script
+        private System.Windows.Forms.Button formScriptDir;      // Form element button to open script directory
 
         
 
@@ -120,15 +121,6 @@ namespace ACT_Plugin
             this.formScriptConfig.Enabled = false;
             this.Controls.Add(this.formScriptConfig);
 
-            this.formScriptReload = new System.Windows.Forms.Button();
-            this.formScriptReload.Name = "ScriptReload";
-            this.formScriptReload.AutoSize = true;
-            this.formScriptReload.Location = new System.Drawing.Point(252, this.formScriptInfo.Height + 48);
-            this.formScriptReload.Size = new System.Drawing.Size(82, 24);
-            this.formScriptReload.Text = "Refresh List";
-            this.formScriptReload.Enabled = true;
-            this.Controls.Add(this.formScriptReload);
-
             this.formWebOpen = new System.Windows.Forms.Button();
             this.formWebOpen.Name = "WebOpen";
             this.formWebOpen.AutoSize = true;
@@ -138,6 +130,23 @@ namespace ACT_Plugin
             this.formWebOpen.Enabled = false;
             this.Controls.Add(this.formWebOpen);
 
+            this.formScriptReload = new System.Windows.Forms.Button();
+            this.formScriptReload.Name = "ScriptReload";
+            this.formScriptReload.AutoSize = true;
+            this.formScriptReload.Location = new System.Drawing.Point(252, this.formScriptInfo.Height + 48);
+            this.formScriptReload.Size = new System.Drawing.Size(82, 24);
+            this.formScriptReload.Text = "Refresh List";
+            this.formScriptReload.Enabled = true;
+            this.Controls.Add(this.formScriptReload);
+
+            this.formScriptDir = new System.Windows.Forms.Button();
+            this.formScriptDir.Name = "ScriptDir";
+            this.formScriptDir.AutoSize = true;
+            this.formScriptDir.Location = new System.Drawing.Point(336, this.formScriptInfo.Height + 48);
+            this.formScriptDir.Size = new System.Drawing.Size(114, 24);
+            this.formScriptDir.Text = "Open Script Directory";
+            this.Controls.Add(this.formScriptDir);
+
             this.ResumeLayout(false);
             this.PerformLayout();
         }
@@ -146,7 +155,7 @@ namespace ACT_Plugin
         {
             // start daemon
             this.scriptDaemon = new Process();
-            this.scriptDaemon.StartInfo.FileName = this.getPluginDirectory() + "\\fflua.exe";
+            this.scriptDaemon.StartInfo.FileName = this.getPluginDirectory() + "\\bin\\fflua.exe";
             this.scriptDaemon.StartInfo.CreateNoWindow = true;
             //this.scriptDaemon.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
             this.scriptDaemon.Start();
@@ -167,6 +176,7 @@ namespace ACT_Plugin
             this.formScriptReload.Click += ScriptReload_Click;
             this.formScriptConfig.Click += ScriptConfig_Click;
             this.formWebOpen.Click += ScriptWeb_Click;
+            this.formScriptDir.Click += ScriptDir_Click;
             // /
 			pluginScreenSpace.Controls.Add(this);	// Add this UserControl to the tab ACT provides
             // set tab title
@@ -191,6 +201,7 @@ namespace ACT_Plugin
             this.formScriptReload.Click -= ScriptReload_Click;
             this.formScriptConfig.Click -= ScriptConfig_Click;
             this.formWebOpen.Click -= ScriptWeb_Click;
+            this.formScriptDir.Click -= ScriptDir_Click;
             //this.buttonSave.Click -= buttonSave_OnClick;
             // close udp client
             udpClient.Close();
@@ -293,6 +304,12 @@ namespace ACT_Plugin
             int index = this.formScriptList.FindString(value);
             string name = this.scriptData[index][0];
             Process.Start("http://localhost:31594/" + name + "/");
+        }
+
+        void ScriptDir_Click(object sender, System.EventArgs e)
+        {
+            string path = getPluginDirectory() + "\\scripts";
+            Process.Start(path);
         }
 
         void udpConnect()
