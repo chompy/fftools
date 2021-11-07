@@ -3,9 +3,9 @@ end
 
 function web(req)
     return {
-        encounter = act_encounter(),
-        combatants = act_combatants(),
-        me = me()
+        encounter = ffl_encounter(),
+        combatants = ffl_combatants(),
+        me = ffl_me()
     }
 end
 

@@ -20,7 +20,20 @@ func luaFuncActEncounterTime(L *lua.LState) int {
 	return 1
 }
 
+func luaFuncActEnd(L *lua.LState) int {
+	logLuaInfo(L, "ACT End encounter.")
+	if err := actEnd(); err != nil {
+		ls := L.GetGlobal(luaGlobalScriptData).(*lua.LUserData).Value.(*luaScript)
+		ls.State = LuaScriptError
+		ls.LastError = err
+		logLuaWarn(L, err.Error())
+		actError(err, ls.ScriptName)
+	}
+	return 0
+}
+
 func init() {
-	luaRegisterFunction("act_encounter", luaFuncActEncounter)
-	luaRegisterFunction("act_encounter_time", luaFuncActEncounterTime)
+	luaRegisterFunction("encounter", luaFuncActEncounter)
+	luaRegisterFunction("encounter_time", luaFuncActEncounterTime)
+	luaRegisterFunction("encounter_end", luaFuncActEnd)
 }

@@ -346,6 +346,15 @@ namespace ACT_Plugin
                             string valStr = System.Text.Encoding.UTF8.GetString(bytes, 1, bytes.Length-1);                           
                             var valSplit = valStr.Split('|');
                             var hasScript = false;
+                            for (var i = 0; i < this.scriptData.Count; i++) {
+                                var item = this.scriptData[i];
+                                if (item[0] == valSplit[0]) {
+                                    hasScript = true;
+                                    this.scriptData[i] = valSplit;
+                                    this.formScriptList.Items[i] = "[" + (valSplit[1] == "" ? " " : "O") + "] " + valSplit[2];
+                                    break;
+                                }
+                            }
                             foreach (var item in this.scriptData) {
                                 if (item[0] == valSplit[0]) {
                                     hasScript = true;

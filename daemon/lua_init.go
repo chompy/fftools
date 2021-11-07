@@ -95,7 +95,7 @@ func luaLoadScripts() []*luaScript {
 			if hasScript {
 				continue
 			}
-			script.close()
+			script.unload()
 			loadedScripts = append(loadedScripts[:i], loadedScripts[i+1:]...)
 			hasRemovedScript = true
 			break
@@ -131,19 +131,16 @@ func luaEnableScripts() {
 				break
 			}
 		}
-		if enabled && !script.Enabled {
-			script.Enabled = true
+		if enabled && script.State != LuaScriptActive {
 			// previously disabled, now enabled
 			if err := script.reload(); err != nil {
-				logLuaWarn(script.L, err.Error())
-				actError(err, script.ScriptName)
 				continue
 			}
-		} else if !enabled && script.Enabled {
+			script.activate()
+
+		} else if !enabled && script.State == LuaScriptActive {
 			// previously enabled, now disabled
-			script.Enabled = false
-			script.close()
-			script.load()
+			script.unload()
 		}
 	}
 }

@@ -7,7 +7,7 @@ local function on_zone(z)
     is_tea_zone = false
     if z == "The Epic Of Alexander (Ultimate)" then
         is_tea_zone = true
-        log_info("Entered TEA.")
+        ffl_log_info("Entered TEA.")
     end
 end
 
@@ -20,17 +20,17 @@ local function say_partner(id)
     if has_said then
         return
     end
-    log_info("Local player needs to give/take Nisi from player #" .. tonumber(id, 16) .. ".")
-    local partner = act_combatant_from_id(tonumber(id, 16))
+    ffl_log_info("Local player needs to give/take Nisi from player #" .. tonumber(id, 16) .. ".")
+    local partner = ffl_combatant_from_id(tonumber(id, 16))
     if partner ~= nil then
-        act_say(partner.name .. " knee see")
+        ffl_say(partner.name .. " knee see")
     end
     has_said = true
 end
 
 local function player_nisi()
     for symbol, pid in pairs(nisi_tracker) do
-        if pid == me().id then
+        if pid == ffl_me().id then
             return symbol
         end
     end
@@ -38,7 +38,7 @@ local function player_nisi()
 end
 
 local function on_log(l)
-    local match = regex_match("1A:([A-F0-9]*):(.*) gains the effect of Final (.*) (.) from", l.log_line)
+    local match = ffl_regex_match("1A:([A-F0-9]*):(.*) gains the effect of Final (.*) (.) from", l.log_line)
     if match ~= nil then
         local match_pid = tonumber(match[2], 16)
         local match_symbol = match[5]
@@ -47,10 +47,10 @@ local function on_log(l)
         elseif match[4] == "Judgment: Decree Nisi" then
             local my_nisi = player_nisi()
             -- local player needs nisi
-            if my_nisi == nil and match_pid == me().id then
+            if my_nisi == nil and match_pid == ffl_me().id then
                 say_partner(nisi_tracker[match_symbol])
             -- local player needs to give nisi
-            elseif my_nisi ~= nil and my_nisi == match_symbol and match_pid ~= me().id then
+            elseif my_nisi ~= nil and my_nisi == match_symbol and match_pid ~= ffl_me().id then
                 say_partner(match_pid)
             end
         end
@@ -58,14 +58,14 @@ local function on_log(l)
 end
 
 function init()
-    event_attach("act:encounter:zone", on_zone)
-    event_attach("act:encounter:change", on_encounter_change)
-    event_attach("act:log_line", on_log)
+    ffl_event_attach("act:encounter:zone", on_zone)
+    ffl_event_attach("act:encounter:change", on_encounter_change)
+    ffl_event_attach("act:log_line", on_log)
 end
 
 function info()
     return {
         name = "TEA Third Nisi",
-        desc = "Calls the player's partner for third Nisi pass in The Epic Of Alexander (Ultimate)."
+        desc = "Calls the player's partner for third Nisi pass in TEA."
     }
 end

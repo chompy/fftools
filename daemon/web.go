@@ -8,8 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	lua "github.com/yuin/gopher-lua"
 )
 
 func initWeb() {
@@ -37,11 +35,11 @@ func initWeb() {
 		if len(pathSplit) > 1 && pathSplit[1] == "_data" {
 			luaScript.Lock.Lock()
 			defer luaScript.Lock.Unlock()
-			if !luaScript.Enabled || luaScript.LastError != nil {
+			if luaScript.State != LuaScriptActive {
 				webServeB64(webError, http.StatusInternalServerError, w)
 				return
 			}
-			webServeLua(luaScript.L, w, r)
+			webServeLua(luaScript, w, r)
 			return
 		}
 		// serve up static file
@@ -89,30 +87,18 @@ func webServeFavicon(w http.ResponseWriter, r *http.Request) {
 	w.Write(dataBytes)
 }
 
-func webServeLua(L *lua.LState, w http.ResponseWriter, r *http.Request) {
-	L.SetTop(0)
-	luaRequest := &lua.LTable{}
-	luaRequest.RawSetString("url", lua.LString(r.URL.String()))
-	luaRequest.RawSetString("host", lua.LString(r.URL.Host))
-	luaRequest.RawSetString("hostname", lua.LString(r.URL.Hostname()))
-	luaRequest.RawSetString("port", lua.LString(r.URL.Port()))
-	luaRequest.RawSetString("path", lua.LString(r.URL.Path))
-	queryTable := &lua.LTable{}
-	for k, v := range r.URL.Query() {
-		queryTable.RawSetString(k, valueGoToLua(v))
+func webServeLua(ls *luaScript, w http.ResponseWriter, r *http.Request) {
+	res, err := ls.Web(r)
+	if err != nil {
+		webServeB64(webError, http.StatusInternalServerError, w)
+		return
 	}
-	luaRequest.RawSetString("query", queryTable)
-	L.Push(L.GetGlobal("web"))
-	L.Push(luaRequest)
-	if err := L.PCall(1, 1, nil); err != nil {
-		logLuaWarn(L, err.Error())
+	if res == nil {
 		webServeB64(webNotFound, http.StatusNotFound, w)
 		return
 	}
-	res := valueLuaToGo(L.Get(1))
 	resJson, err := json.Marshal(res)
 	if err != nil {
-		logLuaWarn(L, err.Error())
 		webServeB64(webNotFound, http.StatusNotFound, w)
 		return
 	}

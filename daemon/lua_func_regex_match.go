@@ -20,9 +20,11 @@ func luaFuncRegexMatch(L *lua.LState) int {
 		var err error
 		luaRegexList[regexStr], err = regexp.Compile(regexStr)
 		if err != nil {
+			ls := L.GetGlobal(luaGlobalScriptData).(*lua.LUserData).Value.(*luaScript)
+			ls.State = LuaScriptError
+			ls.LastError = err
 			logLuaWarn(L, err.Error())
-			scriptName := L.GetGlobal(luaGlobalScriptName).String()
-			actError(err, scriptName)
+			actError(err, ls.ScriptName)
 			return 0
 		}
 	}

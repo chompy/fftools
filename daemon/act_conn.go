@@ -136,7 +136,7 @@ func actSendScripts() error {
 	scripts := luaLoadScripts()
 	for _, script := range scripts {
 		enabledString := ""
-		if script.Enabled {
+		if script.State == LuaScriptActive {
 			enabledString = "1"
 		}
 		lastErrMsg := ""

@@ -13,9 +13,11 @@ func luaFuncActSay(L *lua.LState) int {
 	}
 	logLuaInfo(L, "ACT TTS Say '%s.'", text)
 	if err := actSay(text); err != nil {
+		ls := L.GetGlobal(luaGlobalScriptData).(*lua.LUserData).Value.(*luaScript)
+		ls.State = LuaScriptError
+		ls.LastError = err
 		logLuaWarn(L, err.Error())
-		scriptName := L.GetGlobal(luaGlobalScriptName).String()
-		actError(err, scriptName)
+		actError(err, ls.ScriptName)
 	}
 	return 0
 }
@@ -56,6 +58,6 @@ func luaFuncActSayIf(L *lua.LState) int {
 }
 
 func init() {
-	luaRegisterFunction("act_say", luaFuncActSay)
-	luaRegisterFunction("act_say_if", luaFuncActSayIf)
+	luaRegisterFunction("say", luaFuncActSay)
+	luaRegisterFunction("say_if", luaFuncActSayIf)
 }

@@ -38,10 +38,5 @@ func logLuaWarn(L *lua.LState, msg string, args ...interface{}) {
 }
 
 func logLuaDebug(L *lua.LState, msg string, data interface{}) {
-	scriptName := "?"
-	if L != nil {
-		scriptName = L.GetGlobal(luaGlobalScriptName).String()
-	}
-	msg = fmt.Sprintf("[%s] %s", scriptName, msg)
-	logDebug(msg, data)
+	//logLua(L, "[DEBUG] "+msg+" %s", data)
 }

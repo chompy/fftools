@@ -36,7 +36,7 @@ func luaFuncActCombatantFromName(L *lua.LState) int {
 }
 
 func init() {
-	luaRegisterFunction("act_combatants", luaFuncActCombatants)
-	luaRegisterFunction("act_combatant_from_id", luaFuncActCombatantFromId)
-	luaRegisterFunction("act_combatant_from_name", luaFuncActCombatantFromName)
+	luaRegisterFunction("combatants", luaFuncActCombatants)
+	luaRegisterFunction("combatant_from_id", luaFuncActCombatantFromId)
+	luaRegisterFunction("combatant_from_name", luaFuncActCombatantFromName)
 }

@@ -8,7 +8,7 @@ local trine_markers = {
 }
 
 local function say(from, to)
-    act_say(trine_markers[from] .. " to " .. trine_markers[to])
+    ffl_say(trine_markers[from] .. " to " .. trine_markers[to])
 end
 
 local function calculate()
@@ -16,25 +16,25 @@ local function calculate()
         return
     elseif #trine_tracker == 2 and not has_start then
         if trine_tracker == "yb" or trine_tracker == "by" then
-            act_say(trine_markers.c)
+            ffl_say(trine_markers.c)
         elseif trine_tracker == "br" or trine_tracker == "rb" then
-            act_say(trine_markers.d)
+            ffl_say(trine_markers.d)
         elseif trine_tracker == "yr" then
-            act_say(trine_markers.b)
+            ffl_say(trine_markers.b)
         elseif trine_tracker == "ry" then
-            act_say(trine_markers.a)
+            ffl_say(trine_markers.a)
         end
         has_start = true
         return
     elseif #trine_tracker == 3 and has_start then
         if trine_tracker == "ybr" or trine_tracker == "yrb" then
-            act_say("to " .. trine_markers.d)
+            ffl_say("to " .. trine_markers.d)
         elseif trine_tracker == "rby" or trine_tracker == "ryb" then
-            act_say("to " .. trine_markers.c)
+            ffl_say("to " .. trine_markers.c)
         elseif trine_tracker == "byr" then
-            act_say("to " .. trine_markers.a)
+            ffl_say("to " .. trine_markers.a)
         elseif trine_tracker == "bry" then
-            act_say("to " .. trine_markers.b)
+            ffl_say("to " .. trine_markers.b)
         end
         trine_tracker = ""
         has_start = false
@@ -65,12 +65,12 @@ local function on_log(l)
 end
 
 function init()
-    event_attach("act:log_line", on_log)
+    ffl_event_attach("act:log_line", on_log)
 end
 
 function info()
     return {
         name = "TEA Trine Callouts",
-        desc = "Calls starting and ending spots for trines, using standard markers with C-1-3-4."
+        desc = "Calls starting and ending spots for trines, using standard markers with C-1-3-4 in TEA."
     }
 end

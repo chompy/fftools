@@ -2,16 +2,26 @@ local jail_list = {}
 local encounter_id = 0
 
 local function jail_sort(a, b)
-    local order_config = config_get("order")
+    local order_config = ffl_config_get("order")
     local ak = -1
     local bk = -1
+    -- match name
     for k, v in ipairs(order_config) do
-        local ca = act_combatant_from_name(a)
-        local cb = act_combatant_from_name(b)
-        if ak == -1 and (a == v or (ca ~= nil and string.upper(ca.job) == string.upper(v))) then
+        if ak == -1 and a == v then
             ak = k
         end
-        if bk == -1 and (b.name == v or (cb ~= nil and string.upper(cb.job) == string.upper(v))) then
+        if bk == -1 and b == v then
+            bk = k
+        end
+    end
+    -- match job
+    for k, v in ipairs(order_config) do
+        local ca = ffl_combatant_from_name(a)
+        local cb = ffl_combatant_from_name(b)
+        if ak == -1 and ca ~= nil and string.upper(ca.job) == string.upper(v) then
+            ak = k
+        end
+        if bk == -1 and cb ~= nil and string.upper(cb.job) == string.upper(v) then
             bk = k
         end
     end
@@ -19,7 +29,7 @@ local function jail_sort(a, b)
 end
 
 local function on_log(l)
-    local match = regex_match(":2B6(B|C):.*?:.*?:(.*?):0:", l.log_line)
+    local match = ffl_regex_match(":2B6(B|C):.*?:.*?:(.*?):0:", l.log_line)
     if match == nil then
         return
     end
@@ -29,10 +39,7 @@ local function on_log(l)
     if #jail_list == 3 then
         table.sort(jail_list, jail_sort)
         for n, v in ipairs(jail_list) do
-            if v == me().name then
-                act_say(n)
-                return
-            end
+            ffl_say_if(n, {name=v})
         end
     end
 end
@@ -50,8 +57,8 @@ function web()
 end
 
 function init()
-    event_attach("act:log_line", on_log)
-    event_attach("act:encounter:change", on_encounter)
+    ffl_event_attach("act:log_line", on_log)
+    ffl_event_attach("act:encounter:change", on_encounter)
 end
 
 function info()
