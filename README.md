@@ -1,8 +1,8 @@
 FFXIV Lua
 =========
-**By Chompy / Minda Silva@Sargantas / Qunara Sivra@Excalibur**
+**By Chompy / Minda Silva@Sargatanas / Qunara Sivra@Excalibur**
 
-Extends Final Fantasy XIV log parsing in Advanced Combat Tracker (ACT) with Lua script.
+Extends Final Fantasy XIV log parsing in Advanced Combat Tracker (ACT) with Lua scripts.
 
 
 ## Installation
@@ -13,8 +13,62 @@ Extends Final Fantasy XIV log parsing in Advanced Combat Tracker (ACT) with Lua 
 4. Click on the 'FFXIV Lua Scripts' tab. A list of available scripts will be on the left side. Click on a script name and then click the 'Enable' button to enable the script.
 
 
-## Web Scripts
+## Web View
 
 Some scripts provide a webpage view which provides additonal visual information. These web views can be used in OBS as part of your streaming overlay or can be shared with other players who can't use ACT. In order to share these web pages you will need to setup port fordwarding for TCP port `31594`. Please be aware that you will need to share your IP address to make this work.
 
 In the future I would like to look for alternative solutions for sharing web views with other players. Some thoughts include using UPNP and offering a proxy service.
+
+
+## Scripting API
+
+Scripts are expected to contain two global functions, `init` and `info`. The `info` function is called to obtain information about the script, a name and a description. It should return a table with keys `name` and `desc`. The `init` function is called when the script is first enabled. It is expected to attach to any event needed by the script.
+
+Example script...
+
+```
+local function on_zone(z)
+    print("Enter zone " .. z)
+end
+
+function info()
+    return {
+        name = "Example Script",
+        desc = "A very basic example script."
+    }
+end
+
+function init()
+    ffl_event_attach("act:encounter:zone", on_zone)
+end
+```
+
+
+### Available Functions
+
+Below is a list of available functions that can be used in your scripts. Better documentation will be provided later.
+
+- ffl_event_attach
+- ffl_event_detach
+- ffl_say
+- ffl_say_if
+- ffl_combatants
+- ffl_combatant_from_id
+- ffl_combatant_from_name
+- ffl_config_get
+- ffl_data_set
+- ffl_data_get
+- ffl_log_info
+- ffl_log_warn
+- ffl_me
+- ffl_regex_match
+
+
+### Available Events
+
+- act:log_line
+- act:combatant
+- act:encounter
+- act:encounter:zone
+- act:encounter:change
+
