@@ -28,9 +28,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Advanced_Combat_Tracker;
 
-[assembly: AssemblyTitle("FFXIV ACT Lua")]
-[assembly: AssemblyDescription("Bup!")]
-[assembly: AssemblyCompany("Nathan Ogden")]
+[assembly: AssemblyTitle("FFXIV Lua")]
+[assembly: AssemblyDescription("Extends FFXIV parsing with Lua scripts.")]
+[assembly: AssemblyCompany("Chompy#3436")]
 [assembly: AssemblyVersion("0.01")]
 
 namespace ACT_Plugin
@@ -157,7 +157,7 @@ namespace ACT_Plugin
             this.scriptDaemon = new Process();
             this.scriptDaemon.StartInfo.FileName = this.getPluginDirectory() + "\\bin\\fflua.exe";
             this.scriptDaemon.StartInfo.CreateNoWindow = true;
-            //this.scriptDaemon.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            this.scriptDaemon.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
             this.scriptDaemon.Start();
             Thread.Sleep(250);
             // status label
@@ -182,7 +182,7 @@ namespace ACT_Plugin
             // set tab title
             foreach (ActPluginData p in ActGlobals.oFormActMain.ActPlugins) {
                 if (p.pluginObj == this) {
-                    p.tpPluginSpace.Text = "FFLua";
+                    p.tpPluginSpace.Text = "FFXIV Lua Scripts";
                 }
             }
             // enable watcher

@@ -29,7 +29,7 @@ func luaFuncActSayIf(L *lua.LState) int {
 	job := ""
 	role := ""
 	id := 0
-	if cond != nil {
+	if cond != nil && cond.Type() == lua.LTTable {
 		nameL := cond.RawGetString("name")
 		if nameL != nil && nameL.Type() == lua.LTString {
 			name = string(nameL.(lua.LString))
@@ -54,7 +54,7 @@ func luaFuncActSayIf(L *lua.LState) int {
 		(id != 0 && localPlayerID != id) {
 		return 0
 	}
-	return luaFuncActSayIf(L)
+	return luaFuncActSay(L)
 }
 
 func init() {
