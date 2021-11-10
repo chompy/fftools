@@ -54,6 +54,11 @@ func luaListenCallback(event *eventDispatch) {
 			arg = lua.LString(event.Data.(string))
 			break
 		}
+	case lua.LValue:
+		{
+			arg = event.Data.(lua.LValue)
+			break
+		}
 	}
 	L.SetTop(0)
 	L.Push(callback)

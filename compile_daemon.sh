@@ -1,3 +1,3 @@
 #!/bin/sh
 cd daemon
-go build -o ../bin/fflua.exe
+CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ go build -o ../bin/fflua.exe

@@ -17,21 +17,21 @@ along with FF Lua.  If not, see <https://www.gnu.org/licenses/>.
 
 package main
 
-import "os"
+import (
+	lua "github.com/yuin/gopher-lua"
+)
 
-func main() {
-	luaEnableScripts()
-	stat, _ := os.Stdin.Stat()
-	if (stat.Mode() & os.ModeCharDevice) == 0 {
-		testLogLines := testerParse(os.Stdin)
-		if len(testLogLines) > 0 {
-			testerReplay(testLogLines)
-		}
+func luaFuncEventDispatch(L *lua.LState) int {
+	event := L.ToString(1)
+	data := L.Get(2)
+	if event == "" {
+		return 0
 	}
-	config := configAppLoad()
-	if config.EnableProxy {
-		go webProxyConnect()
-	}
-	go initWeb()
-	actListenUDP()
+	logLuaInfo(L, "Dispatch event '%s.'", event)
+	eventListenerDispatch(event, data)
+	return 0
+}
+
+func init() {
+	luaRegisterFunction("event_dispatch", luaFuncEventDispatch)
 }

@@ -1,0 +1,41 @@
+# key mapping to activate marker macros
+key_map:
+  - "alt-f1"   # <1>
+  - "alt-f2"   # <2>
+  - "alt-f3"   # <3>
+  - "alt-f4"   # <4>
+  - "alt-f5"   # <5>
+  - "alt-f6"   # <6>
+  - "alt-f7"   # <7>
+  - "alt-f8"   # <8>
+  - "alt-f9"   # clear marks
+
+# party list sort order
+sort_order:
+  - GNB
+  - DRK
+  - WAR
+  - MRD
+  - PLD
+  - GLD
+  - WHM
+  - CNJ
+  - SCH
+  - AST
+  - MNK
+  - PUG
+  - DRG
+  - LNC
+  - NIN
+  - ROG
+  - SAM
+  - BRD
+  - ARC
+  - MCH
+  - DNC
+  - BLM
+  - THM
+  - SMN
+  - ARC
+  - RDM
+  - BLU

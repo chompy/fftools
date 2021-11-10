@@ -1,5 +1,6 @@
 local jail_list = {}
 local encounter_id = 0
+local has_called = false
 
 local function jail_sort(a, b)
     local order_config = ffl_config_get("order")
@@ -28,6 +29,10 @@ local function jail_sort(a, b)
     return ak < bk
 end
 
+local function clear_marks()
+    ffl_event_dispatch("am:clear")
+end
+
 local function on_log(l)
     local match = ffl_regex_match(":2B6(B|C):.*?:.*?:(.*?):0:", l.log_line)
     if match == nil then
@@ -36,17 +41,21 @@ local function on_log(l)
     if #jail_list < 3 then
         jail_list[#jail_list+1] = match[3]
     end
-    if #jail_list == 3 then
+    if #jail_list == 3 and not has_called then
         table.sort(jail_list, jail_sort)
         for n, v in ipairs(jail_list) do
             ffl_say_if(n, {name=v})
+            ffl_event_dispatch("am:mark", v)
         end
+        ffl_wait(8000, clear_marks)
+        has_called = true
     end
 end
 
 local function on_encounter(e)
     jail_list = {}
     encounter_id = e.id
+    has_called = false
 end
 
 function web()

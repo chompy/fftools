@@ -31,9 +31,10 @@ const configLuaDefault = "default.yaml"
 var configLoadedApp *configApp
 
 type configApp struct {
-	PortData   uint16 `yaml:"port_data"`
-	PortWeb    uint16 `yaml:"port_web"`
-	LogMaxSize int64  `yaml:"log_max_size"`
+	PortData    uint16 `yaml:"port_data"`
+	PortWeb     uint16 `yaml:"port_web"`
+	LogMaxSize  int64  `yaml:"log_max_size"`
+	EnableProxy bool   `yaml:"enable_proxy"`
 }
 
 func configGetPath() string {
@@ -129,9 +130,10 @@ func configLoadScriptConfig(name string) (map[string]interface{}, error) {
 
 func configAppDefault() *configApp {
 	return &configApp{
-		PortData:   31593,
-		PortWeb:    31594,
-		LogMaxSize: 262144, // 256KB
+		PortData:    31593,
+		PortWeb:     31594,
+		LogMaxSize:  262144, // 256KB
+		EnableProxy: false,
 	}
 }
 

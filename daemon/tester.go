@@ -90,27 +90,30 @@ func testerReplay(logLines []LogLine) {
 		switch pll.Type {
 		case LogTypeNetworkAbility, LogTypeNetworkAOEAbility:
 			{
-				combatant := Combatant{
-					ID:          int32(pll.Values["source_id"].(int)),
-					Name:        pll.Values["source_name"].(string),
-					EncounterID: logLines[0].EncounterID,
-					Job:         "War",
-				}
-				hasCombatant := false
-				for i := range combatants {
-					if combatants[i].ID == combatant.ID {
-						hasCombatant = true
-						break
+				for _, ctype := range []string{"source", "target"} {
+					combatant := Combatant{
+						ID:          int32(pll.Values[ctype+"_id"].(int)),
+						Name:        pll.Values[ctype+"_name"].(string),
+						EncounterID: logLines[0].EncounterID,
+						Job:         "War",
 					}
-				}
-				if !hasCombatant {
-					combatants = append(combatants, combatant)
+					hasCombatant := false
+					for i := range combatants {
+						if combatants[i].ID == combatant.ID {
+							hasCombatant = true
+							break
+						}
+					}
+					if !hasCombatant {
+						combatants = append(combatants, combatant)
+					}
 				}
 				break
 			}
 		}
 	}
 	for _, combatant := range combatants {
+		combatantNameLookup[int(combatant.ID)] = combatant.Name
 		eventListenerDispatch("act:combatant", combatant)
 	}
 	// send log lines in real time

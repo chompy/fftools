@@ -50,6 +50,7 @@ Below is a list of available functions that can be used in your scripts. Better 
 
 - ffl_event_attach
 - ffl_event_detach
+- ffl_event_dispatch
 - ffl_say
 - ffl_say_if
 - ffl_combatants
@@ -62,6 +63,8 @@ Below is a list of available functions that can be used in your scripts. Better 
 - ffl_log_warn
 - ffl_me
 - ffl_regex_match
+- ffl_wait
+- ffl_key_press
 
 
 ### Available Events
