@@ -29,53 +29,55 @@ import (
 
 func initWeb() {
 	http.HandleFunc("/favicon.ico", webServeFavicon)
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		pathSplit := strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")
-		scriptName := pathSplit[0]
-		if scriptName == "" {
-			webServeB64(webNotFound, http.StatusNotFound, w)
-			return
-		}
-		var luaScript *luaScript = nil
-		for _, _luaScript := range loadedScripts {
-			if _luaScript.ScriptName == scriptName {
-				luaScript = _luaScript
-				break
-			}
-		}
-		// lua script not found
-		if luaScript == nil {
-			webServeB64(webNotFound, http.StatusNotFound, w)
-			return
-		}
-		// execute lua script end point
-		if len(pathSplit) > 1 && pathSplit[1] == "_data" {
-			luaScript.Lock.Lock()
-			defer luaScript.Lock.Unlock()
-			if luaScript.State != LuaScriptActive {
-				webServeB64(webError, http.StatusInternalServerError, w)
-				return
-			}
-			webServeLua(luaScript, w, r)
-			return
-		}
-		// serve up static file
-		pathTo := filepath.Join(getScriptWebPath(scriptName), strings.Trim(strings.Join(pathSplit[1:], "/"), "/"))
-		if _, err := os.Stat(pathTo); err != nil {
-			if os.IsNotExist(err) {
-				webServeB64(webNotFound, http.StatusNotFound, w)
-				return
-			}
-			webServeB64(webError, http.StatusInternalServerError, w)
-			return
-		}
-		// TODO custom not found
-		http.ServeFile(w, r, pathTo)
-	})
+	http.HandleFunc("/", webHandle)
 	config := configAppLoad()
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", config.PortWeb), nil); err != nil {
 		logWarn(err.Error())
 	}
+}
+
+func webHandle(w http.ResponseWriter, r *http.Request) {
+	pathSplit := strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")
+	scriptName := pathSplit[0]
+	if scriptName == "" {
+		webServeB64(webNotFound, http.StatusNotFound, w)
+		return
+	}
+	var luaScript *luaScript = nil
+	for _, _luaScript := range loadedScripts {
+		if _luaScript.ScriptName == scriptName {
+			luaScript = _luaScript
+			break
+		}
+	}
+	// lua script not found
+	if luaScript == nil {
+		webServeB64(webNotFound, http.StatusNotFound, w)
+		return
+	}
+	// execute lua script end point
+	if len(pathSplit) > 1 && pathSplit[1] == "_data" {
+		luaScript.Lock.Lock()
+		defer luaScript.Lock.Unlock()
+		if luaScript.State != LuaScriptActive {
+			webServeB64(webError, http.StatusInternalServerError, w)
+			return
+		}
+		webServeLua(luaScript, w, r)
+		return
+	}
+	// serve up static file
+	pathTo := filepath.Join(getScriptWebPath(scriptName), strings.Trim(strings.Join(pathSplit[1:], "/"), "/"))
+	if _, err := os.Stat(pathTo); err != nil {
+		if os.IsNotExist(err) {
+			webServeB64(webNotFound, http.StatusNotFound, w)
+			return
+		}
+		webServeB64(webError, http.StatusInternalServerError, w)
+		return
+	}
+	// TODO custom not found
+	http.ServeFile(w, r, pathTo)
 }
 
 func webServeB64(data string, status int, w http.ResponseWriter) {

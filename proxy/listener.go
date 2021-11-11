@@ -1,11 +1,13 @@
 package main
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"log"
 	"net"
-	"net/http"
-	"net/http/httputil"
+	"strings"
+
+	"github.com/martinlindhe/base36"
 )
 
 const proxyPort = 31595
@@ -18,27 +20,28 @@ func proxyListen() error {
 	defer l.Close()
 	for {
 		conn, err := l.Accept()
-		log.Printf("[INFO] Connection from %s.", conn.RemoteAddr().String())
+		uid := uidFromConn(conn)
+		log.Printf("[INFO] Connection from %s (%s).", conn.RemoteAddr().String(), uid)
 		if err != nil {
-			log.Printf("[WARN] %s", err.Error())
+			log.Printf("[WARN] proxyListen :: %s", err.Error())
 			continue
 		}
-		addProxyUser(conn)
+		addProxyUser(uid, conn)
 	}
 }
 
-func proxyRequest(user *proxyUser, r *http.Request) error {
-
-	rawReq, err := httputil.DumpRequest(r, true)
+func uidFromConn(conn net.Conn) string {
+	addr := strings.Split(conn.RemoteAddr().String(), ":")
+	ipStr := strings.Trim(strings.Join(addr[:len(addr)-1], ":"), "[]")
+	ip := net.ParseIP(ipStr)
+	/*port, err := strconv.Atoi(addr[len(addr)-1])
 	if err != nil {
-		return err
+		return ""
+	}*/
+	ipHash := sha256.Sum256(ip)
+	ipHashBytes := make([]byte, 32)
+	for i := range ipHash {
+		ipHashBytes[i] = ipHash[i]
 	}
-
-	user.connection.Write(rawReq)
-	user.connection.R
-
+	return strings.ToLower(base36.EncodeBytes(ipHashBytes))[0:8]
 }
-
-func proxyResponse() {
-
-}d

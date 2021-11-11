@@ -1,50 +1,65 @@
 package main
 
 import (
-	"context"
+	"bufio"
+	"bytes"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
-	"net/http/httputil"
 	"strings"
 )
 
 const httpPort = 31596
 
 func webListen() error {
-
 	http.HandleFunc("/favicon.ico", webServeFavicon)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		pathSplit := strings.Split(r.URL.Path, "/")
-		uid := pathSplit[0]
-		proxyUser := getProxyUser(uid)
+		pathSplit := strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")
+		proxyUser := getProxyUser(pathSplit[0])
 		if proxyUser == nil {
 			webServeB64(webNotFound, http.StatusNotFound, w)
 			return
 		}
 		webServeProxy(proxyUser, w, r)
 	})
-
 	return http.ListenAndServe(fmt.Sprintf(":%d", httpPort), nil)
 }
 
 func webServeProxy(u *proxyUser, w http.ResponseWriter, r *http.Request) {
-	pathSplit := strings.Split(r.URL.Path, "/")
+	pathSplit := strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")
 	if len(pathSplit) < 2 {
 		webServeB64(webNotFound, http.StatusNotFound, w)
 		return
 	}
-	sendReq := r.Clone(context.Background())
-	sendReq.URL.Path = strings.Join(pathSplit[1:], "/")
-	rawReq, err := httputil.DumpRequest(sendReq, true)
+	reqId, err := u.handleRequest(r)
 	if err != nil {
-		log.Printf("[WARN] %s", err.Error())
+		log.Printf("[WARN] handleRequest :: %s", err.Error())
 		webServeB64(webError, http.StatusInternalServerError, w)
 		return
 	}
-	if _, err := u.connection.Write(rawReq); err != nil {
-		log.Printf("[WARN] %s", err.Error())
+	rawResp, err := u.responseWait(reqId)
+	if err != nil {
+		log.Printf("[WARN] responseWait :: %s", err.Error())
+		webServeB64(webError, http.StatusInternalServerError, w)
+		return
+	}
+
+	resp, err := http.ReadResponse(bufio.NewReader(bytes.NewReader(rawResp)), r)
+	if err != nil {
+		log.Printf("[WARN] response read :: %s", err.Error())
+		webServeB64(webError, http.StatusInternalServerError, w)
+		return
+	}
+	for k, vs := range resp.Header {
+		for _, v := range vs {
+			w.Header().Add(k, v)
+		}
+	}
+	w.WriteHeader(resp.StatusCode)
+	if _, err := io.Copy(w, resp.Body); err != nil {
+		log.Printf("[WARN] response write :: %s", err.Error())
 		webServeB64(webError, http.StatusInternalServerError, w)
 		return
 	}
@@ -54,7 +69,7 @@ func webServeProxy(u *proxyUser, w http.ResponseWriter, r *http.Request) {
 func webServeB64(data string, status int, w http.ResponseWriter) {
 	dataBytes, err := base64.StdEncoding.DecodeString(data)
 	if err != nil {
-		log.Printf("[WARN] %s", err.Error())
+		log.Printf("[WARN] webServeB64 :: %s", err.Error())
 		webHandleError(w)
 		return
 	}
@@ -66,7 +81,7 @@ func webServeB64(data string, status int, w http.ResponseWriter) {
 func webServeFavicon(w http.ResponseWriter, r *http.Request) {
 	dataBytes, err := base64.StdEncoding.DecodeString(webFavicon)
 	if err != nil {
-		log.Printf("[WARN] %s", err.Error())
+		log.Printf("[WARN] webServeFavicon :: %s", err.Error())
 		webHandleError(w)
 		return
 	}

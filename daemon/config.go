@@ -133,7 +133,7 @@ func configAppDefault() *configApp {
 		PortData:    31593,
 		PortWeb:     31594,
 		LogMaxSize:  262144, // 256KB
-		EnableProxy: false,
+		EnableProxy: true,
 	}
 }
 
