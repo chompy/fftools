@@ -1,6 +1,6 @@
 *.exe
 *.exe~
 /config/*
-!/config/.placeholder
+!/config/_app.yaml
 /data/*
 !/data/.placeholder
