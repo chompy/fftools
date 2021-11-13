@@ -19,7 +19,7 @@ func webListen() error {
 		pathSplit := strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")
 		proxyUser := getProxyUser(pathSplit[0])
 		if proxyUser == nil {
-			webServeB64(webNotFound, http.StatusNotFound, w)
+			webServeB64(assetError404UserNotFound, http.StatusNotFound, w)
 			return
 		}
 		webServeProxy(proxyUser, w, r)
@@ -30,26 +30,26 @@ func webListen() error {
 func webServeProxy(u *proxyUser, w http.ResponseWriter, r *http.Request) {
 	pathSplit := strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")
 	if len(pathSplit) < 2 {
-		webServeB64(webNotFound, http.StatusNotFound, w)
+		webServeB64(assetError404General, http.StatusNotFound, w)
 		return
 	}
 	reqId, err := u.handleRequest(r)
 	if err != nil {
 		log.Printf("[WARN] handleRequest :: %s", err.Error())
-		webServeB64(webError, http.StatusInternalServerError, w)
+		webServeB64(assetError500General, http.StatusInternalServerError, w)
 		return
 	}
 	rawResp, err := u.responseWait(reqId)
 	if err != nil {
 		log.Printf("[WARN] responseWait :: %s", err.Error())
-		webServeB64(webError, http.StatusInternalServerError, w)
+		webServeB64(assetError500General, http.StatusInternalServerError, w)
 		return
 	}
 
 	resp, err := http.ReadResponse(bufio.NewReader(bytes.NewReader(rawResp)), r)
 	if err != nil {
 		log.Printf("[WARN] response read :: %s", err.Error())
-		webServeB64(webError, http.StatusInternalServerError, w)
+		webServeB64(assetError500General, http.StatusInternalServerError, w)
 		return
 	}
 	for k, vs := range resp.Header {
@@ -60,7 +60,7 @@ func webServeProxy(u *proxyUser, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(resp.StatusCode)
 	if _, err := io.Copy(w, resp.Body); err != nil {
 		log.Printf("[WARN] response write :: %s", err.Error())
-		webServeB64(webError, http.StatusInternalServerError, w)
+		webServeB64(assetError500General, http.StatusInternalServerError, w)
 		return
 	}
 
@@ -79,13 +79,12 @@ func webServeB64(data string, status int, w http.ResponseWriter) {
 }
 
 func webServeFavicon(w http.ResponseWriter, r *http.Request) {
-	dataBytes, err := base64.StdEncoding.DecodeString(webFavicon)
+	dataBytes, err := base64.StdEncoding.DecodeString(assetFavicon)
 	if err != nil {
 		log.Printf("[WARN] webServeFavicon :: %s", err.Error())
 		webHandleError(w)
 		return
 	}
-
 	w.Header().Set("Content-Encoding", "gzip")
 	w.Header().Set("Content-Type", "image/ico")
 	w.WriteHeader(http.StatusOK)

@@ -40,7 +40,7 @@ func webHandle(w http.ResponseWriter, r *http.Request) {
 	pathSplit := strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")
 	scriptName := pathSplit[0]
 	if scriptName == "" {
-		webServeB64(webNotFound, http.StatusNotFound, w)
+		webServeB64(assetError404General, http.StatusNotFound, w)
 		return
 	}
 	var luaScript *luaScript = nil
@@ -52,7 +52,7 @@ func webHandle(w http.ResponseWriter, r *http.Request) {
 	}
 	// lua script not found
 	if luaScript == nil {
-		webServeB64(webNotFound, http.StatusNotFound, w)
+		webServeB64(assetError404General, http.StatusNotFound, w)
 		return
 	}
 	// execute lua script end point
@@ -60,7 +60,7 @@ func webHandle(w http.ResponseWriter, r *http.Request) {
 		luaScript.Lock.Lock()
 		defer luaScript.Lock.Unlock()
 		if luaScript.State != LuaScriptActive {
-			webServeB64(webError, http.StatusInternalServerError, w)
+			webServeB64(assetError404General, http.StatusInternalServerError, w)
 			return
 		}
 		webServeLua(luaScript, w, r)
@@ -70,10 +70,10 @@ func webHandle(w http.ResponseWriter, r *http.Request) {
 	pathTo := filepath.Join(getScriptWebPath(scriptName), strings.Trim(strings.Join(pathSplit[1:], "/"), "/"))
 	if _, err := os.Stat(pathTo); err != nil {
 		if os.IsNotExist(err) {
-			webServeB64(webNotFound, http.StatusNotFound, w)
+			webServeB64(assetError404General, http.StatusNotFound, w)
 			return
 		}
-		webServeB64(webError, http.StatusInternalServerError, w)
+		webServeB64(assetError500General, http.StatusInternalServerError, w)
 		return
 	}
 	// TODO custom not found
@@ -93,7 +93,7 @@ func webServeB64(data string, status int, w http.ResponseWriter) {
 }
 
 func webServeFavicon(w http.ResponseWriter, r *http.Request) {
-	dataBytes, err := base64.StdEncoding.DecodeString(webFavicon)
+	dataBytes, err := base64.StdEncoding.DecodeString(assetFavicon)
 	if err != nil {
 		logWarn(err.Error())
 		webHandleError(w)
@@ -109,16 +109,16 @@ func webServeFavicon(w http.ResponseWriter, r *http.Request) {
 func webServeLua(ls *luaScript, w http.ResponseWriter, r *http.Request) {
 	res, err := ls.Web(r)
 	if err != nil {
-		webServeB64(webError, http.StatusInternalServerError, w)
+		webServeB64(assetError404General, http.StatusInternalServerError, w)
 		return
 	}
 	if res == nil {
-		webServeB64(webNotFound, http.StatusNotFound, w)
+		webServeB64(assetError404General, http.StatusNotFound, w)
 		return
 	}
 	resJson, err := json.Marshal(res)
 	if err != nil {
-		webServeB64(webNotFound, http.StatusNotFound, w)
+		webServeB64(assetError404General, http.StatusNotFound, w)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")

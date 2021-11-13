@@ -37,7 +37,7 @@ func webProxyConnect() error {
 			r, err := http.NewRequest(http.MethodGet, "http://localhost"+reqPath, nil)
 			if err != nil {
 				logWarn("[PROXY] " + err.Error())
-				webServeB64(webError, http.StatusInternalServerError, w)
+				webServeB64(assetError500General, http.StatusInternalServerError, w)
 				continue
 			}
 			webHandle(w, r)

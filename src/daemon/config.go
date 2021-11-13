@@ -31,8 +31,8 @@ const configLuaDefault = "default.yaml"
 var configLoadedApp *configApp
 
 type configApp struct {
-	PortData    uint16 `yaml:"port_data"`
-	PortWeb     uint16 `yaml:"port_web"`
+	PortData    uint16 `yaml:"data_port"`
+	PortWeb     uint16 `yaml:"web_port"`
 	LogMaxSize  int64  `yaml:"log_max_size"`
 	EnableProxy bool   `yaml:"enable_proxy"`
 }

@@ -1,8 +1,8 @@
-FFXIV Lua
-=========
+FFTK (Final Fantasy XIV Toolkit)
+================================
 **By Chompy / Minda Silva@Sargatanas / Qunara Sivra@Excalibur**
 
-Extends Final Fantasy XIV log parsing in Advanced Combat Tracker (ACT) with Lua scripts.
+Extends Final Fantasy XIV log parsing in Advanced Combat Tracker (ACT) with Lua scripts that can perform TTS callouts, create web UIs, and more.
 
 
 ## Installation
@@ -15,9 +15,9 @@ Extends Final Fantasy XIV log parsing in Advanced Combat Tracker (ACT) with Lua 
 
 ## Web View
 
-Some scripts provide a webpage view which provides additonal visual information. These web views can be used in OBS as part of your streaming overlay or can be shared with other players who can't use ACT. In order to share these web pages you will need to setup port fordwarding for TCP port `31594`. Please be aware that you will need to share your IP address to make this work.
+Some scripts provide a webpage view which provides additonal visual information. These web views can be used in OBS as part of your streaming overlay or can be shared with other players who can't use ACT.
 
-In the future I would like to look for alternative solutions for sharing web views with other players. Some thoughts include using UPNP and offering a proxy service.
+When using 
 
 
 ## Scripting API

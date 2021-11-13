@@ -1,4 +1,4 @@
-module github.com/chompy/ffxiv_act_lua/proxy
+module github.com/chompy/fftk/src/proxy
 
 go 1.17
 

@@ -1,4 +1,4 @@
-module github.com/chompy/ffxiv_act_lua
+module github.com/chompy/fftk/src/daemon
 
 go 1.17
 

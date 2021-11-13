@@ -1,18 +1,18 @@
 /*
-This file is part of FFXIV ACT Lua.
+This file is part of FFTK.
 
-FFXIV ACT Lua is free software: you can redistribute it and/or modify
+FFTK is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-FFXIV ACT Lua is distributed in the hope that it will be useful,
+FFTK is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with FFXIV ACT Lua.  If not, see <https://www.gnu.org/licenses/>.
+along with FFTK.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 using System;
@@ -28,24 +28,23 @@ using System.Threading;
 using System.Threading.Tasks;
 using Advanced_Combat_Tracker;
 
-[assembly: AssemblyTitle("FFXIV Lua")]
-[assembly: AssemblyDescription("Extends FFXIV parsing with Lua scripts.")]
+[assembly: AssemblyTitle("Final Fantasy Toolkit (FFTK)")]
+[assembly: AssemblyDescription("Extends FFXIV parsing with Lua scripts that support TTS callouts, web UI, and more.")]
 [assembly: AssemblyCompany("Chompy#3436")]
-[assembly: AssemblyVersion("0.01")]
+[assembly: AssemblyVersion("0.02")]
 
 namespace ACT_Plugin
 {
     public class FFActLua : UserControl, IActPluginV1
     {
 
-        const int VERSION_NUMBER = 1;
+        const int VERSION_NUMBER = 2;
 
         const UInt16 DAEMON_PORT = 31593;                       // Port to send to daemon on.
         
         const byte DATA_TYPE_ENCOUNTER = 2;                     // Data type, encounter data
         const byte DATA_TYPE_COMBATANT = 3;                     // Data type, combatant data
         const byte DATA_TYPE_LOG_LINE = 5;                      // Data type, log line
-        const byte DATA_TYPE_FLAG = 99;                         // Data type, flag
 
         const byte DATA_TYPE_SCRIPT = 201;                      // Data type, information about an available lua script
         const byte DATA_TYPE_SCRIPT_ENABLE = 202;               // Data type, enable script
@@ -182,7 +181,7 @@ namespace ACT_Plugin
             // set tab title
             foreach (ActPluginData p in ActGlobals.oFormActMain.ActPlugins) {
                 if (p.pluginObj == this) {
-                    p.tpPluginSpace.Text = "FFXIV Lua Scripts";
+                    p.tpPluginSpace.Text = "FFTK";
                 }
             }
             // enable watcher
