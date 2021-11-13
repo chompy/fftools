@@ -9,10 +9,9 @@ import (
 	"net/http"
 )
 
-const webProxyAddress = "localhost:31595"
-
 func webProxyConnect() error {
-	conn, err := net.Dial("tcp", webProxyAddress)
+	config := configAppLoad()
+	conn, err := net.Dial("tcp", config.ProxyAddress)
 	if err != nil {
 		logWarn(err.Error())
 		return err

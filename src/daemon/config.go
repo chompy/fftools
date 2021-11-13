@@ -31,10 +31,11 @@ const configLuaDefault = "default.yaml"
 var configLoadedApp *configApp
 
 type configApp struct {
-	PortData    uint16 `yaml:"data_port"`
-	PortWeb     uint16 `yaml:"web_port"`
-	LogMaxSize  int64  `yaml:"log_max_size"`
-	EnableProxy bool   `yaml:"enable_proxy"`
+	PortData     uint16 `yaml:"data_port"`
+	PortWeb      uint16 `yaml:"web_port"`
+	LogMaxSize   int64  `yaml:"log_max_size"`
+	EnableProxy  bool   `yaml:"enable_proxy"`
+	ProxyAddress string `yaml:"proxy_address"`
 }
 
 func configGetPath() string {
@@ -130,10 +131,11 @@ func configLoadScriptConfig(name string) (map[string]interface{}, error) {
 
 func configAppDefault() *configApp {
 	return &configApp{
-		PortData:    31593,
-		PortWeb:     31594,
-		LogMaxSize:  262144, // 256KB
-		EnableProxy: true,
+		PortData:     31593,
+		PortWeb:      31594,
+		LogMaxSize:   262144, // 256KB
+		EnableProxy:  true,
+		ProxyAddress: "localhost:31595",
 	}
 }
 
@@ -144,6 +146,7 @@ func configAppLoad() *configApp {
 	config := configAppDefault()
 	rawConfig, err := ioutil.ReadFile(configGetScriptConfigPath("_app"))
 	if err != nil {
+		logWarn(err.Error())
 		return config
 	}
 	if err := yaml.Unmarshal(rawConfig, config); err != nil {
