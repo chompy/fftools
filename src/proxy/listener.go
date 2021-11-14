@@ -45,7 +45,7 @@ func proxyListen() error {
 		log.Printf("[INFO] Connection from %s.", conn.RemoteAddr().String())
 		go func(conn net.Conn) {
 			uid, secret := waitForCreds(conn)
-			if addProxyUser(uid, secret, conn) != nil {
+			if addProxyUser(uid, secret, conn) == nil {
 				conn.Write([]byte{byte(proxyMsgInvalidCreds)})
 				return
 			}

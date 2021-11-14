@@ -27,6 +27,7 @@ import (
 )
 
 const proxyUserTTL = 86400
+const maxCredWaitTime = 5000
 
 type ProxyUser struct {
 	Uid             string `json:"uid"`
@@ -42,24 +43,22 @@ var proxyUsers = make([]*ProxyUser, 0)
 
 func addProxyUser(uid string, secret string, conn net.Conn) *ProxyUser {
 	u := getProxyUser(uid)
-	if u != nil {
-		if u.Secret != secret {
-			return nil
+	if u == nil {
+		u = &ProxyUser{
+			Uid:    uid,
+			Secret: secret,
 		}
-		u.connection = conn
-		return u
+		proxyUsers = append(proxyUsers, u)
+		if err := persistUsers(); err != nil {
+			log.Printf("[WARN] persist users :: %s", err.Error())
+		}
 	}
-	u = &ProxyUser{
-		Uid:             uid,
-		Secret:          secret,
-		connection:      conn,
-		lastRequestTime: time.Now(),
-		requests:        make([]userRequest, 0),
+	if u.Secret != secret {
+		return nil
 	}
-	proxyUsers = append(proxyUsers, u)
-	if err := persistUsers(); err != nil {
-		log.Printf("[WARN] persist users :: %s", err.Error())
-	}
+	u.connection = conn
+	u.requests = make([]userRequest, 0)
+	u.lastRequestTime = time.Now()
 	go func(index int) {
 		buf := make([]byte, responseMaxSize)
 		for {
@@ -99,8 +98,14 @@ func getProxyUser(uid string) *ProxyUser {
 }
 
 func waitForCreds(conn net.Conn) (string, string) {
+	start := time.Now()
 	buf := make([]byte, 1+proxyUidLen+64)
 	for {
+		if time.Since(start) > time.Millisecond*maxCredWaitTime {
+			conn.Close()
+			log.Printf("[WARN] wait for uid, reached match wait time")
+			return "", ""
+		}
 		_, err := conn.Read(buf)
 		if err != nil {
 			log.Printf("[WARN] wait for uid, read error :: %s", err.Error())

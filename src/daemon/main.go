@@ -17,7 +17,9 @@ along with FFTools.  If not, see <https://www.gnu.org/licenses/>.
 
 package main
 
-import "os"
+import (
+	"os"
+)
 
 func main() {
 	luaEnableScripts()

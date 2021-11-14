@@ -48,6 +48,7 @@ func webProxyConnect() error {
 				{
 					// regenerate and resend creds if invalid
 					// (assume collision)
+					logInfo("Recieved invalid proxy creds, regenerating.")
 					uid, secret := webProxyGenerateCreds()
 					if err := configSetProxyCred(uid, secret); err != nil {
 						logWarn(err.Error())

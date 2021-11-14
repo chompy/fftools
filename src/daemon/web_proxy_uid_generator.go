@@ -15,6 +15,7 @@ const secretSalt = "U2?6M?AEq+XZ--!232Dvckcla/.,;sDfd"
 
 func proxyRandUid(n int) string {
 	b := make([]rune, n)
+	rand.Seed(time.Now().UnixMicro())
 	for i := range b {
 		b[i] = proxyUidRunes[rand.Intn(len(proxyUidRunes))]
 	}
