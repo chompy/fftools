@@ -18,37 +18,28 @@ along with FFTools.  If not, see <https://www.gnu.org/licenses/>.
 package main
 
 import (
-	"fmt"
-	"log"
-	"net"
+	"encoding/json"
+	"io/ioutil"
+	"os"
 )
 
-const proxyPort = 31595
-const proxyMsgLogin = 1
-const proxyMsgWebReq = 2
-const proxyMsgWebResp = 3
-const proxyMsgInvalidCreds = 4
-const proxyUidLen = 8
+const persistUsersFile = "./data/_proxy_users.json"
 
-func proxyListen() error {
-	l, err := net.Listen("tcp", fmt.Sprintf(":%d", proxyPort))
+func persistUsers() error {
+	proxyUsersJSON, err := json.Marshal(proxyUsers)
 	if err != nil {
 		return err
 	}
-	defer l.Close()
-	for {
-		conn, err := l.Accept()
-		if err != nil {
-			log.Printf("[WARN] proxyListen :: %s", err.Error())
-			continue
+	return ioutil.WriteFile(persistUsersFile, proxyUsersJSON, 0600)
+}
+
+func readUsers() error {
+	proxyUsersJSON, err := ioutil.ReadFile(persistUsersFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
 		}
-		log.Printf("[INFO] Connection from %s.", conn.RemoteAddr().String())
-		go func(conn net.Conn) {
-			uid, secret := waitForCreds(conn)
-			if addProxyUser(uid, secret, conn) != nil {
-				conn.Write([]byte{byte(proxyMsgInvalidCreds)})
-				return
-			}
-		}(conn)
+		return err
 	}
+	return json.Unmarshal(proxyUsersJSON, &proxyUsers)
 }

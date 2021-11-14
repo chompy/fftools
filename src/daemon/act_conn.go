@@ -1,23 +1,24 @@
 /*
-This file is part of FF Lua.
+This file is part of FFTools.
 
-FF Lua is free software: you can redistribute it and/or modify
+FFTools is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-FF Lua is distributed in the hope that it will be useful,
+FFTools is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with FF Lua.  If not, see <https://www.gnu.org/licenses/>.
+along with FFTools.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 package main
 
 import (
+	"fmt"
 	"net"
 )
 
@@ -151,6 +152,12 @@ func actRawSend(data []byte) error {
 func actSendScripts() error {
 	logInfo("[ACT] Send script list.")
 	scripts := luaLoadScripts()
+	config := configAppLoad()
+	uid, _, _ := configGetProxyCreds()
+	webUrl := fmt.Sprintf("http://localhost:%d/", config.PortWeb)
+	if config.EnableProxy {
+		webUrl = fmt.Sprintf("%s%s/", config.ProxyURL, uid)
+	}
 	for _, script := range scripts {
 		enabledString := ""
 		if script.State == LuaScriptActive {
@@ -160,7 +167,7 @@ func actSendScripts() error {
 		if script.LastError != nil {
 			lastErrMsg = script.LastError.Error()
 		}
-		data := script.ScriptName + "|" + enabledString + "|" + script.Name + "|" + script.Desc + "|" + lastErrMsg
+		data := script.ScriptName + "|" + enabledString + "|" + script.Name + "|" + script.Desc + "|" + webUrl + script.ScriptName + "|" + lastErrMsg
 		err := actRawSend(append(
 			[]byte{byte(dataTypeActScripts)},
 			[]byte(data)...,

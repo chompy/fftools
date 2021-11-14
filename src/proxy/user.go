@@ -1,3 +1,20 @@
+/*
+This file is part of FFTools.
+
+FFTools is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+FFTools is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with FFTools.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 package main
 
 import (
@@ -11,8 +28,9 @@ import (
 
 const proxyUserTTL = 86400
 
-type proxyUser struct {
-	uid             string
+type ProxyUser struct {
+	Uid             string `json:"uid"`
+	Secret          string `json:"secret"`
 	connection      net.Conn
 	lastRequestTime time.Time
 	requests        []userRequest
@@ -20,28 +38,33 @@ type proxyUser struct {
 	sync            sync.Mutex
 }
 
-var proxyUsers = make([]*proxyUser, 0)
+var proxyUsers = make([]*ProxyUser, 0)
 
-func addProxyUser(uid string, conn net.Conn) *proxyUser {
+func addProxyUser(uid string, secret string, conn net.Conn) *ProxyUser {
 	u := getProxyUser(uid)
 	if u != nil {
+		if u.Secret != secret {
+			return nil
+		}
 		u.connection = conn
 		return u
 	}
-	u = &proxyUser{
-		uid:             uid,
+	u = &ProxyUser{
+		Uid:             uid,
+		Secret:          secret,
 		connection:      conn,
 		lastRequestTime: time.Now(),
 		requests:        make([]userRequest, 0),
 	}
 	proxyUsers = append(proxyUsers, u)
+	if err := persistUsers(); err != nil {
+		log.Printf("[WARN] persist users :: %s", err.Error())
+	}
 	go func(index int) {
 		buf := make([]byte, responseMaxSize)
 		for {
-
 			// check response
 			u := proxyUsers[index]
-
 			n, err := u.connection.Read(buf)
 			if err != nil {
 				log.Printf("[WARN] proxy read response :: %s", err.Error())
@@ -56,22 +79,39 @@ func addProxyUser(uid string, conn net.Conn) *proxyUser {
 			}
 			// clean up
 			if time.Since(u.lastRequestTime) > time.Second*proxyUserTTL {
-				log.Printf("[INFO] Clean up '%s.'", u.uid)
+				log.Printf("[INFO] Clean up %s (%s).", u.connection.RemoteAddr().String(), u.Uid)
 				u.connection.Close()
 				proxyUsers = append(proxyUsers[index:], proxyUsers[:index+1]...)
 				return
 			}
 		}
 	}(len(proxyUsers) - 1)
-
 	return u
 }
 
-func getProxyUser(uid string) *proxyUser {
+func getProxyUser(uid string) *ProxyUser {
 	for _, u := range proxyUsers {
-		if u.uid == uid {
+		if u.Uid == uid {
 			return u
 		}
 	}
 	return nil
+}
+
+func waitForCreds(conn net.Conn) (string, string) {
+	buf := make([]byte, 1+proxyUidLen+64)
+	for {
+		_, err := conn.Read(buf)
+		if err != nil {
+			log.Printf("[WARN] wait for uid, read error :: %s", err.Error())
+			conn.Close()
+			return "", ""
+		}
+		if buf[0] != proxyMsgLogin {
+			continue
+		}
+		uid := string(buf[1 : 1+proxyUidLen])
+		secret := string(buf[10 : 1+proxyUidLen+64])
+		return uid, secret
+	}
 }

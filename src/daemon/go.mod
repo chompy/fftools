@@ -12,6 +12,7 @@ require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/go-ole/go-ole v1.2.5 // indirect
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
+	github.com/oklog/ulid/v2 v2.0.2 // indirect
 	github.com/otiai10/gosseract v2.2.1+incompatible // indirect
 	github.com/robotn/gohook v0.31.2 // indirect
 	github.com/robotn/xgb v0.0.0-20190912153532-2cb92d044934 // indirect

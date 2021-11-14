@@ -20,9 +20,12 @@ const varNamePrefix = "asset_"
 var exportTo = []string{"src/proxy/web_data.go", "src/daemon/web_data.go"}
 
 func main() {
-	wa, _ := listWebAssets()
+	wa, err := listWebAssets()
+	if err != nil {
+		panic(err)
+	}
 	out := make([]byte, 0)
-	out = append(out, []byte("package main\n\n")...)
+	out = append(out, []byte("package main\n\n// --> THIS FILE IS AUTO GENERATED <--\n\n")...)
 	for _, name := range wa {
 		if strings.HasSuffix(name, ".html") {
 			data, err := webCompile(name)
@@ -89,12 +92,6 @@ func webCompile(name string) (string, error) {
 				switch n.Attr[i].Key {
 				case "href":
 					{
-						// read asset
-						hrefData, err := getWebAsset(strings.Trim(n.Attr[i].Val, "/"))
-						if err != nil {
-							log.Printf("[WARN] %s", err.Error())
-							return
-						}
 						// get mime type
 						mime := ""
 						for _, attr := range n.Attr {
@@ -102,18 +99,24 @@ func webCompile(name string) (string, error) {
 								mime = attr.Val
 							}
 						}
-						// generate data uri and replace href
-						dataUri, err := generateDataUri(hrefData, mime)
-						if err != nil {
+						// convert attr value to data uri
+						if err := convertAttr(&n.Attr[i], mime); err != nil {
 							log.Printf("[WARN] %s", err.Error())
-							return
 						}
-						n.Attr[i].Val = dataUri
 						break
 					}
 				case "src":
 					{
-						log.Println(n.Data)
+						switch n.Data {
+						case "img":
+							{
+								// convert attr value to data uri
+								if err := convertAttr(&n.Attr[i], "image/png"); err != nil {
+									log.Printf("[WARN] %s", err.Error())
+								}
+								break
+							}
+						}
 						break
 					}
 				}
@@ -146,4 +149,17 @@ func generateDataUri(r io.Reader, mime string) (string, error) {
 		return "", err
 	}
 	return "data:" + mime + ";base64," + base64.StdEncoding.EncodeToString(byteData), nil
+}
+
+func convertAttr(a *html.Attribute, mime string) error {
+	attrAsset, err := getWebAsset(strings.Trim(a.Val, "/"))
+	if err != nil {
+		return err
+	}
+	dataUri, err := generateDataUri(attrAsset, mime)
+	if err != nil {
+		return err
+	}
+	a.Val = dataUri
+	return nil
 }

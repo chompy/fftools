@@ -1,18 +1,18 @@
 /*
-This file is part of FF Lua.
+This file is part of FFTools.
 
-FF Lua is free software: you can redistribute it and/or modify
+FFTools is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-FF Lua is distributed in the hope that it will be useful,
+FFTools is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with FF Lua.  If not, see <https://www.gnu.org/licenses/>.
+along with FFTools.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 package main
@@ -101,9 +101,9 @@ func (ls *luaScript) load() error {
 	funcTable := &lua.LTable{}
 	for name, function := range luaFuncs {
 		funcTable.RawSetString(name, ls.L.NewFunction(function))
-		ls.L.SetGlobal("ffl_"+name, ls.L.NewFunction(function))
+		ls.L.SetGlobal("fft_"+name, ls.L.NewFunction(function))
 	}
-	ls.L.SetGlobal("ffl", funcTable)
+	ls.L.SetGlobal("fft", funcTable)
 	return nil
 }
 

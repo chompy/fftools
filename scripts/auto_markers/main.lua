@@ -7,10 +7,10 @@ local function split(s, delimiter)
 end
 
 local function party_sort(a, b)
-    if a.id == ffl_me().id then
+    if a.id == fft_me().id then
         return true
     end
-    local job_order = ffl_config_get("sort_order")
+    local job_order = fft_config_get("sort_order")
     ak = -1
     bk = -1
     for k, v in ipairs(job_order) do
@@ -25,7 +25,7 @@ local function party_sort(a, b)
 end
 
 local function get_sorted_party()
-    combatants = ffl_combatants()
+    combatants = fft_combatants()
     table.sort(combatants, party_sort)
     return combatants
 end
@@ -41,8 +41,8 @@ end
 
 local function do_keypress(index)
     if index >= 1 then
-        local keys = split(ffl_config_get("key_map")[index], "-")
-        ffl_key_press(keys[1], keys[2], keys[3], keys[4])
+        local keys = split(fft_config_get("key_map")[index], "-")
+        fft_key_press(keys[1], keys[2], keys[3], keys[4])
     end
 end
 
@@ -51,13 +51,13 @@ local function on_mark(combatant)
 end
 
 local function on_clear()
-    local keys = split(ffl_config_get("key_map")[9], "-")
-    ffl_key_press(keys[1], keys[2], keys[3], keys[4])
+    local keys = split(fft_config_get("key_map")[9], "-")
+    fft_key_press(keys[1], keys[2], keys[3], keys[4])
 end
 
 function init()
-    ffl_event_attach("am:mark", on_mark)
-    ffl_event_attach("am:clear", on_clear)
+    fft_event_attach("am:mark", on_mark)
+    fft_event_attach("am:clear", on_clear)
 end
 
 function info()

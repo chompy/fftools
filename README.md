@@ -1,4 +1,4 @@
-FFTK (Final Fantasy XIV Toolkit)
+FFTools (Final Fantasy XIV Tools)
 ================================
 **By Chompy / Minda Silva@Sargatanas / Qunara Sivra@Excalibur**
 
@@ -8,16 +8,14 @@ Extends Final Fantasy XIV log parsing in Advanced Combat Tracker (ACT) with Lua 
 ## Installation
 
 1. Download the plugin here. Extract the ZIP. Open ACT and navigate to the plugins tab.
-2. Click 'Browse...' and locate the 'FFXIV_ACT_Lua.cs' file.
+2. Click 'Browse...' and locate the 'FFTools_ACT_Plugin.cs' file.
 3. Click 'Add/Enable Plugin.'
-4. Click on the 'FFXIV Lua Scripts' tab. A list of available scripts will be on the left side. Click on a script name and then click the 'Enable' button to enable the script.
+4. Click on the 'FFTools' tab. A list of available scripts will be on the left side. Click on a script name and then click the 'Enable' button to enable the script.
 
 
 ## Web View
 
 Some scripts provide a webpage view which provides additonal visual information. These web views can be used in OBS as part of your streaming overlay or can be shared with other players who can't use ACT.
-
-When using 
 
 
 ## Scripting API

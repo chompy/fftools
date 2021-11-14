@@ -8,7 +8,7 @@ local trine_markers = {
 }
 
 local function say(from, to)
-    ffl_say(trine_markers[from] .. " to " .. trine_markers[to])
+    fft_say(trine_markers[from] .. " to " .. trine_markers[to])
 end
 
 local function calculate()
@@ -16,25 +16,25 @@ local function calculate()
         return
     elseif #trine_tracker == 2 and not has_start then
         if trine_tracker == "yb" or trine_tracker == "by" then
-            ffl_say(trine_markers.c)
+            fft_say(trine_markers.c)
         elseif trine_tracker == "br" or trine_tracker == "rb" then
-            ffl_say(trine_markers.d)
+            fft_say(trine_markers.d)
         elseif trine_tracker == "yr" then
-            ffl_say(trine_markers.b)
+            fft_say(trine_markers.b)
         elseif trine_tracker == "ry" then
-            ffl_say(trine_markers.a)
+            fft_say(trine_markers.a)
         end
         has_start = true
         return
     elseif #trine_tracker == 3 and has_start then
         if trine_tracker == "ybr" or trine_tracker == "yrb" then
-            ffl_say("to " .. trine_markers.d)
+            fft_say("to " .. trine_markers.d)
         elseif trine_tracker == "rby" or trine_tracker == "ryb" then
-            ffl_say("to " .. trine_markers.c)
+            fft_say("to " .. trine_markers.c)
         elseif trine_tracker == "byr" then
-            ffl_say("to " .. trine_markers.a)
+            fft_say("to " .. trine_markers.a)
         elseif trine_tracker == "bry" then
-            ffl_say("to " .. trine_markers.b)
+            fft_say("to " .. trine_markers.b)
         end
         trine_tracker = ""
         has_start = false
@@ -65,7 +65,7 @@ local function on_log(l)
 end
 
 function init()
-    ffl_event_attach("act:log_line", on_log)
+    fft_event_attach("act:log_line", on_log)
 end
 
 function info()

@@ -1,3 +1,20 @@
+/*
+This file is part of FFTools.
+
+FFTools is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+FFTools is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with FFTools.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 package main
 
 import (
@@ -17,6 +34,12 @@ func webListen() error {
 	http.HandleFunc("/favicon.ico", webServeFavicon)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		pathSplit := strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")
+		// home
+		if len(pathSplit) == 1 && pathSplit[0] == "" {
+			webServeB64(assetIndex, http.StatusOK, w)
+			return
+		}
+		// locate proxy user and serve proxy
 		proxyUser := getProxyUser(pathSplit[0])
 		if proxyUser == nil {
 			webServeB64(assetError404UserNotFound, http.StatusNotFound, w)
@@ -27,7 +50,7 @@ func webListen() error {
 	return http.ListenAndServe(fmt.Sprintf(":%d", httpPort), nil)
 }
 
-func webServeProxy(u *proxyUser, w http.ResponseWriter, r *http.Request) {
+func webServeProxy(u *ProxyUser, w http.ResponseWriter, r *http.Request) {
 	pathSplit := strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")
 	if len(pathSplit) < 2 {
 		webServeB64(assetError404General, http.StatusNotFound, w)
@@ -85,7 +108,6 @@ func webServeFavicon(w http.ResponseWriter, r *http.Request) {
 		webHandleError(w)
 		return
 	}
-	w.Header().Set("Content-Encoding", "gzip")
 	w.Header().Set("Content-Type", "image/ico")
 	w.WriteHeader(http.StatusOK)
 	w.Write(dataBytes)

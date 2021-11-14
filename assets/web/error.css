@@ -17,10 +17,9 @@ html, body {
     position: relative;
     top: 6px;
     letter-spacing: 1px;
-
 }
 .title span {
-    color: red;
+    color: #ff3b3b;
 }
 h2, p {
     text-align: center;

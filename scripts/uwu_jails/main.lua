@@ -3,7 +3,7 @@ local encounter_id = 0
 local has_called = false
 
 local function jail_sort(a, b)
-    local order_config = ffl_config_get("order")
+    local order_config = fft_config_get("order")
     local ak = -1
     local bk = -1
     -- match name
@@ -17,8 +17,8 @@ local function jail_sort(a, b)
     end
     -- match job
     for k, v in ipairs(order_config) do
-        local ca = ffl_combatant_from_name(a)
-        local cb = ffl_combatant_from_name(b)
+        local ca = fft_combatant_from_name(a)
+        local cb = fft_combatant_from_name(b)
         if ak == -1 and ca ~= nil and string.upper(ca.job) == string.upper(v) then
             ak = k
         end
@@ -30,11 +30,11 @@ local function jail_sort(a, b)
 end
 
 local function clear_marks()
-    ffl_event_dispatch("am:clear")
+    fft_event_dispatch("am:clear")
 end
 
 local function on_log(l)
-    local match = ffl_regex_match(":2B6(B|C):.*?:.*?:(.*?):0:", l.log_line)
+    local match = fft_regex_match(":2B6(B|C):.*?:.*?:(.*?):0:", l.log_line)
     if match == nil then
         return
     end
@@ -44,10 +44,10 @@ local function on_log(l)
     if #jail_list == 3 and not has_called then
         table.sort(jail_list, jail_sort)
         for n, v in ipairs(jail_list) do
-            ffl_say_if(n, {name=v})
-            ffl_event_dispatch("am:mark", v)
+            fft_say_if(n, {name=v})
+            fft_event_dispatch("am:mark", v)
         end
-        ffl_wait(8000, clear_marks)
+        fft_wait(8000, clear_marks)
         has_called = true
     end
 end
@@ -66,8 +66,8 @@ function web()
 end
 
 function init()
-    ffl_event_attach("act:log_line", on_log)
-    ffl_event_attach("act:encounter:change", on_encounter)
+    fft_event_attach("act:log_line", on_log)
+    fft_event_attach("act:encounter:change", on_encounter)
 end
 
 function info()

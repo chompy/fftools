@@ -1,18 +1,18 @@
 /*
-This file is part of FFTK.
+This file is part of FFTools.
 
-FFTK is free software: you can redistribute it and/or modify
+FFTools is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-FFTK is distributed in the hope that it will be useful,
+FFTools is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with FFTK.  If not, see <https://www.gnu.org/licenses/>.
+along with FFTools.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 using System;
@@ -28,14 +28,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Advanced_Combat_Tracker;
 
-[assembly: AssemblyTitle("Final Fantasy Toolkit (FFTK)")]
+[assembly: AssemblyTitle("FFTools")]
 [assembly: AssemblyDescription("Extends FFXIV parsing with Lua scripts that support TTS callouts, web UI, and more.")]
 [assembly: AssemblyCompany("Chompy#3436")]
 [assembly: AssemblyVersion("0.02")]
 
 namespace ACT_Plugin
 {
-    public class FFActLua : UserControl, IActPluginV1
+    public class FFTools : UserControl, IActPluginV1
     {
 
         const int VERSION_NUMBER = 2;
@@ -79,7 +79,7 @@ namespace ACT_Plugin
 
         
 
-        public FFActLua()
+        public FFTools()
         {
             this.SuspendLayout();
             this.Dock = DockStyle.Fill;
@@ -181,7 +181,7 @@ namespace ACT_Plugin
             // set tab title
             foreach (ActPluginData p in ActGlobals.oFormActMain.ActPlugins) {
                 if (p.pluginObj == this) {
-                    p.tpPluginSpace.Text = "FFTK";
+                    p.tpPluginSpace.Text = "FFTools";
                 }
             }
             // enable watcher

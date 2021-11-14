@@ -1,0 +1,84 @@
+html, body {
+    font-family: sans-serif;
+    background-color:#030d57;
+    color: #fff;
+    margin: 0;
+}
+
+
+/** === HEADER + LOGO === */
+#head {
+    border-bottom: 1px solid #fff;
+    margin-bottom: 30px;
+    background-color: #181818;
+}
+
+.title {
+    letter-spacing: -4px;
+    color: #fff;
+    font-size: 60px;
+    font-family: 'Times New Roman', Times, serif;
+    transform: scale(.5, 1);
+    letter-spacing: 1px;
+    padding: 0;
+    margin: 0;
+    display: inline-block;
+    position: relative;
+    left: -55px;
+}
+.title a {
+    color: #fff;
+    text-decoration: none;
+}
+.title span {
+    color: #ff3b3b;
+}
+#head .info {
+    position: relative;
+    display: inline-block;
+    text-align: left;
+    font-style: italic;
+    left: -115px;
+    vertical-align: middle;
+    top: -17px;
+}
+@media (max-width: 648px) {
+    #head .info {
+        display: none;
+    }
+}
+#head .icons {
+    float: right;
+    line-height: 90px;
+    margin-right: 25px;
+}
+#head .icons img {
+    max-width: 32px;
+}
+@media (max-width: 432px) {
+    #head .icons {
+        display: none;
+    }
+}
+
+/** === BODY === */
+#body {
+    margin: 20px;
+}
+
+/** === SECTIONS === */
+.section {
+    background-color: #262626;
+    border: 1px solid #696969;
+    padding: 5px 10px;
+    margin-bottom: 15px;
+}
+.section .name {
+    position: absolute;
+    margin-top: -14px;
+    font-weight: 700;
+    font-style: italic;
+}
+.section p {
+    text-align: center;
+}

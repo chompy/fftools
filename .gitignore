@@ -4,3 +4,4 @@
 !/config/_app.yaml
 /data/*
 !/data/.placeholder
+src/*/web_data.go
