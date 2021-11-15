@@ -386,6 +386,16 @@ func ParseLogEvent(logLine LogLine) (ParsedLogEvent, error) {
 			}
 			break
 		}
+	case LogTypePartyList:
+		{
+			count, _ := strconv.ParseInt(fields[1], 10, 64)
+			out.Values["count"] = count
+			out.Values["ids"] = make([]int, count)
+			for i := 0; i < int(count); i++ {
+				out.Values["ids"].([]int)[i], _ = hexToInt(fields[i+2])
+			}
+			break
+		}
 	default:
 		{
 			instructions := logRegexes[out.Type]

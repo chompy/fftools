@@ -29,6 +29,10 @@ func valueGoToLua(value interface{}) lua.LValue {
 		{
 			return lua.LNumber(value)
 		}
+	case int64:
+		{
+			return lua.LNumber(value)
+		}
 	case float64:
 		{
 			return lua.LNumber(value)
@@ -46,6 +50,10 @@ func valueGoToLua(value interface{}) lua.LValue {
 			return valueGoToLuaTable(value)
 		}
 	case []interface{}:
+		{
+			return valueGoToLuaTable(value)
+		}
+	case []int:
 		{
 			return valueGoToLuaTable(value)
 		}
@@ -75,6 +83,14 @@ func valueGoToLuaTable(value interface{}) *lua.LTable {
 			return out
 		}
 	case []interface{}:
+		{
+			out := &lua.LTable{}
+			for k, v := range value {
+				out.RawSetInt(k+1, valueGoToLua(v))
+			}
+			return out
+		}
+	case []int:
 		{
 			out := &lua.LTable{}
 			for k, v := range value {

@@ -9,6 +9,8 @@ end
 local function party_sort(a, b)
     if a.id == fft_me().id then
         return true
+    elseif b.id == fft_me().id then
+        return false
     end
     local job_order = fft_config_get("sort_order")
     ak = -1

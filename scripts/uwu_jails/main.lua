@@ -73,6 +73,6 @@ end
 function info()
     return {
         name = "UWU Jails Callout",
-        desc = "Calls out your Titan jail number."
+        desc = "Calls out your Titan jail number in The Weapon's Refrain (Ultimate). Compatible with Auto Markers."
     }
 end

@@ -78,7 +78,6 @@ namespace ACT_Plugin
         private System.Windows.Forms.Button formScriptDir;      // Form element button to open script directory
 
         
-
         public FFTools()
         {
             this.SuspendLayout();
@@ -125,7 +124,7 @@ namespace ACT_Plugin
             this.formWebOpen.AutoSize = true;
             this.formWebOpen.Location = new System.Drawing.Point(402, this.formScriptInfo.Height + 16);
             this.formWebOpen.Size = new System.Drawing.Size(82, 24);
-            this.formWebOpen.Text = "Open Webpage";
+            this.formWebOpen.Text = "Open Web View";
             this.formWebOpen.Enabled = false;
             this.Controls.Add(this.formWebOpen);
 
@@ -154,9 +153,9 @@ namespace ACT_Plugin
         {
             // start daemon
             this.scriptDaemon = new Process();
-            this.scriptDaemon.StartInfo.FileName = this.getPluginDirectory() + "\\bin\\fflua.exe";
+            this.scriptDaemon.StartInfo.FileName = this.getPluginDirectory() + "\\bin\\fftools_daemon.exe";
             this.scriptDaemon.StartInfo.CreateNoWindow = true;
-            this.scriptDaemon.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            //this.scriptDaemon.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
             this.scriptDaemon.Start();
             Thread.Sleep(250);
             // status label
@@ -201,7 +200,6 @@ namespace ACT_Plugin
             this.formScriptConfig.Click -= ScriptConfig_Click;
             this.formWebOpen.Click -= ScriptWeb_Click;
             this.formScriptDir.Click -= ScriptDir_Click;
-            //this.buttonSave.Click -= buttonSave_OnClick;
             // close udp client
             udpClient.Close();
             if (listenThread != null) {
@@ -247,8 +245,8 @@ namespace ACT_Plugin
             int index = this.formScriptList.FindString(value);
             string titleSep = new String('-', 64);
             string desc = this.scriptData[index][3];
-            if (this.scriptData[index][4] != "") {
-                desc = "ERROR:\r\n" + this.scriptData[index][4];
+            if (this.scriptData[index][5] != "") {
+                desc = "ERROR:\r\n" + this.scriptData[index][5];
             }
             this.formScriptInfo.Text = this.scriptData[index][2] + "\r\n" +
                 titleSep + "\r\n" + desc;  
@@ -301,8 +299,8 @@ namespace ACT_Plugin
         {
             string value = this.formScriptList.SelectedItem.ToString();
             int index = this.formScriptList.FindString(value);
-            string name = this.scriptData[index][0];
-            Process.Start("http://localhost:31594/" + name + "/");
+            string url = this.scriptData[index][4];
+            Process.Start(url);
         }
 
         void ScriptDir_Click(object sender, System.EventArgs e)
