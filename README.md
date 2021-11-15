@@ -37,7 +37,7 @@ function info()
 end
 
 function init()
-    ffl_event_attach("act:encounter:zone", on_zone)
+    fft_event_attach("act:encounter:zone", on_zone)
 end
 ```
 
@@ -46,23 +46,23 @@ end
 
 Below is a list of available functions that can be used in your scripts. Better documentation will be provided later.
 
-- ffl_event_attach
-- ffl_event_detach
-- ffl_event_dispatch
-- ffl_say
-- ffl_say_if
-- ffl_combatants
-- ffl_combatant_from_id
-- ffl_combatant_from_name
-- ffl_config_get
-- ffl_data_set
-- ffl_data_get
-- ffl_log_info
-- ffl_log_warn
-- ffl_me
-- ffl_regex_match
-- ffl_wait
-- ffl_key_press
+- fft_event_attach
+- fft_event_detach
+- fft_event_dispatch
+- fft_say
+- fft_say_if
+- fft_combatants
+- fft_combatant_from_id
+- fft_combatant_from_name
+- fft_config_get
+- fft_data_set
+- fft_data_get
+- fft_log_info
+- fft_log_warn
+- fft_me
+- fft_regex_match
+- fft_wait
+- fft_key_press
 
 
 ### Available Events
