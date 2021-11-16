@@ -18,8 +18,6 @@ along with FFTools.  If not, see <https://www.gnu.org/licenses/>.
 package main
 
 import (
-	"errors"
-	"io"
 	"log"
 	"net"
 	"sync"
@@ -67,9 +65,10 @@ func addProxyUser(uid string, secret string, conn net.Conn) *ProxyUser {
 			n, err := u.connection.Read(buf)
 			if err != nil {
 				log.Printf("[WARN] proxy read response :: %s", err.Error())
-				if errors.Is(err, io.EOF) {
+				u.lastRequestTime = time.Time{}
+				/*if errors.Is(err, io.EOF) || errors.Is(err, net.ErrClosed) {
 					u.lastRequestTime = time.Time{}
-				}
+				}*/
 			}
 			if n > 0 {
 				if err := u.handleResponse(buf); err != nil {

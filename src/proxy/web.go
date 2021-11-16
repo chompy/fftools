@@ -58,20 +58,19 @@ func webServeProxy(u *ProxyUser, w http.ResponseWriter, r *http.Request) {
 	}
 	reqId, err := u.handleRequest(r)
 	if err != nil {
-		log.Printf("[WARN] handleRequest :: %s", err.Error())
+		log.Printf("[WARN] #%d handleRequest :: %s", reqId, err.Error())
 		webServeB64(assetError500General, http.StatusInternalServerError, w)
 		return
 	}
 	rawResp, err := u.responseWait(reqId)
 	if err != nil {
-		log.Printf("[WARN] responseWait :: %s", err.Error())
+		log.Printf("[WARN] #%d responseWait :: %s", reqId, err.Error())
 		webServeB64(assetError500General, http.StatusInternalServerError, w)
 		return
 	}
-
 	resp, err := http.ReadResponse(bufio.NewReader(bytes.NewReader(rawResp)), r)
 	if err != nil {
-		log.Printf("[WARN] response read :: %s", err.Error())
+		log.Printf("[WARN] #%d response read :: %s", reqId, err.Error())
 		webServeB64(assetError500General, http.StatusInternalServerError, w)
 		return
 	}

@@ -38,6 +38,9 @@ type userRequest struct {
 func (u *ProxyUser) handleRequest(r *http.Request) (uint16, error) {
 	defer u.sync.Unlock()
 	u.sync.Lock()
+	if u.connection == nil {
+		return 0, ErrUserOffline
+	}
 	u.lastRequestTime = time.Now()
 	u.lastRequestId++
 	reqPath := "/" + strings.Join(strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")[1:], "/")
@@ -46,15 +49,18 @@ func (u *ProxyUser) handleRequest(r *http.Request) (uint16, error) {
 		url:  reqPath + "?" + r.URL.RawQuery,
 		resp: nil,
 	}
-	log.Printf("[INFO] [%s] %s %s", u.Uid, r.Method, ureq.url)
+	log.Printf("[INFO] [%s] #%d %s %s", u.Uid, ureq.id, r.Method, ureq.url)
 	u.requests = append(u.requests, ureq)
-	out := make([]byte, 5)
+	out := make([]byte, requestMaxSize)
 	out[0] = proxyMsgWebReq
 	binary.LittleEndian.PutUint16(out[1:], ureq.id)
 	binary.LittleEndian.PutUint16(out[3:], uint16(len(ureq.url)))
-	out = append(out, []byte(ureq.url)...)
-	if len(out) > requestMaxSize {
+	urlBytes := []byte(ureq.url)
+	if len(urlBytes)+5 > requestMaxSize {
 		return 0, ErrRequestTooLarge
+	}
+	for i := range urlBytes {
+		out[i+5] = urlBytes[i]
 	}
 	if _, err := u.connection.Write(out); err != nil {
 		return 0, err
@@ -63,6 +69,8 @@ func (u *ProxyUser) handleRequest(r *http.Request) (uint16, error) {
 }
 
 func (u *ProxyUser) handleResponse(data []byte) error {
+	defer u.sync.Unlock()
+	u.sync.Lock()
 	if data[0] != proxyMsgWebResp {
 		return ErrUnexpectedMessageType
 	}
@@ -71,6 +79,7 @@ func (u *ProxyUser) handleResponse(data []byte) error {
 	if respLen+6 > responseMaxSize {
 		return ErrResponseTooLarge
 	}
+	log.Printf("[INFO] [%s] Recieved response #%d (%d bytes).", u.Uid, id, respLen)
 	for i, ureq := range u.requests {
 		if ureq.id == id {
 			u.requests[i].resp = data[7 : respLen+7]

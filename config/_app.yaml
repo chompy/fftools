@@ -1,6 +1,6 @@
 # enable proxy to allow sharing of web views with other people
 # this will make all your web views available at https://fftk.site/{your id}/{script name}/
-enable_proxy: false
+enable_proxy: true
 
 # port to run web server on for web views, most users should not need to change this
 web_port: 31594

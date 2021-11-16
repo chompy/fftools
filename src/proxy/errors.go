@@ -27,4 +27,5 @@ var (
 	ErrRequestTimeout        = errors.New("request timed out")
 	ErrResponseTooLarge      = errors.New("response was too large")
 	ErrUnexpectedMessageType = errors.New("recieved unexpected message type")
+	ErrUserOffline           = errors.New("user offline")
 )

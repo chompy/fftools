@@ -31,4 +31,5 @@ var (
 	ErrActNotConnected             = errors.New("no act connection available")
 	ErrLogParseTooFewCharacters    = errors.New("tried to parse log line with too few characters")
 	ErrLogParseAbilityTooFewFields = errors.New("not enough fields when parsing ability")
+	ErrProxyResponseTooLarge       = errors.New("response is too large")
 )
