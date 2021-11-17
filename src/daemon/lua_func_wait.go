@@ -30,13 +30,19 @@ func luaFuncWait(L *lua.LState) int {
 		logLuaWarn(L, "Invalid callback for 'wait' function.")
 		return 0
 	}
-	go func() {
+	ls := L.GetGlobal(luaGlobalScriptData).(*lua.LUserData).Value.(*luaScript)
+	go func(L *lua.LState, prevStateId int64) {
 		time.Sleep(time.Millisecond * time.Duration(waitTime))
+		ls := L.GetGlobal(luaGlobalScriptData).(*lua.LUserData).Value.(*luaScript)
+		if ls.StateID != prevStateId {
+			logLuaWarn(L, "State change during 'wait' timer.")
+			return
+		}
 		L.Push(callback)
 		if err := L.PCall(0, 0, nil); err != nil {
 			logLuaWarn(L, err.Error())
 		}
-	}()
+	}(L, ls.StateID)
 	return 0
 }
 

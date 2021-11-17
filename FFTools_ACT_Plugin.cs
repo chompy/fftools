@@ -76,6 +76,7 @@ namespace ACT_Plugin
         private System.Windows.Forms.Button formScriptReload;   // Form element button to reload scripts
         private System.Windows.Forms.Button formWebOpen;        // Form element button to open web page for script
         private System.Windows.Forms.Button formScriptDir;      // Form element button to open script directory
+        private System.Windows.Forms.Button formAppConfig;      // Form element button to open app config file in notepad
 
         
         public FFTools()
@@ -145,6 +146,14 @@ namespace ACT_Plugin
             this.formScriptDir.Text = "Open Script Directory";
             this.Controls.Add(this.formScriptDir);
 
+            this.formAppConfig = new System.Windows.Forms.Button();
+            this.formAppConfig.Name = "AppConfig";
+            this.formAppConfig.AutoSize = true;
+            this.formAppConfig.Location = new System.Drawing.Point(252, this.formScriptInfo.Height + 82);
+            this.formAppConfig.Size = new System.Drawing.Size(142, 24);
+            this.formAppConfig.Text = "Edit Main Plugin Config";
+            this.Controls.Add(this.formAppConfig);
+
             this.ResumeLayout(false);
             this.PerformLayout();
         }
@@ -155,7 +164,7 @@ namespace ACT_Plugin
             this.scriptDaemon = new Process();
             this.scriptDaemon.StartInfo.FileName = this.getPluginDirectory() + "\\bin\\fftools_daemon.exe";
             this.scriptDaemon.StartInfo.CreateNoWindow = true;
-            //this.scriptDaemon.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            this.scriptDaemon.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
             this.scriptDaemon.Start();
             Thread.Sleep(250);
             // status label
@@ -175,6 +184,7 @@ namespace ACT_Plugin
             this.formScriptConfig.Click += ScriptConfig_Click;
             this.formWebOpen.Click += ScriptWeb_Click;
             this.formScriptDir.Click += ScriptDir_Click;
+            this.formAppConfig.Click += AppConfig_Click;
             // /
 			pluginScreenSpace.Controls.Add(this);	// Add this UserControl to the tab ACT provides
             // set tab title
@@ -200,6 +210,7 @@ namespace ACT_Plugin
             this.formScriptConfig.Click -= ScriptConfig_Click;
             this.formWebOpen.Click -= ScriptWeb_Click;
             this.formScriptDir.Click -= ScriptDir_Click;
+            this.formAppConfig.Click -= AppConfig_Click;
             // close udp client
             udpClient.Close();
             if (listenThread != null) {
@@ -307,6 +318,12 @@ namespace ACT_Plugin
         {
             string path = getPluginDirectory() + "\\scripts";
             Process.Start(path);
+        }
+
+        void AppConfig_Click(object sender, System.EventArgs e)
+        {
+            string path = getPluginDirectory() + "\\config\\_app.yaml";
+            Process.Start("notepad.exe", path);
         }
 
         void udpConnect()

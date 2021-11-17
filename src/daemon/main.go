@@ -18,10 +18,19 @@ along with FFTools.  If not, see <https://www.gnu.org/licenses/>.
 package main
 
 import (
+	"log"
 	"os"
+	"path/filepath"
+
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 func main() {
+	log.SetOutput(&lumberjack.Logger{
+		Filename:   filepath.Join(getBasePath(), logPath),
+		MaxSize:    10,
+		MaxBackups: 0,
+	})
 	luaEnableScripts()
 	stat, _ := os.Stdin.Stat()
 	if (stat.Mode() & os.ModeCharDevice) == 0 {
@@ -35,5 +44,7 @@ func main() {
 		go webProxyConnect()
 	}
 	go initWeb()
-	actListenUDP()
+	if err := actListenUDP(); err != nil {
+		logPanic(err)
+	}
 }

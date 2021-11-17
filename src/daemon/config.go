@@ -33,12 +33,13 @@ var proxyUid = ""
 var proxySecret = ""
 
 type configApp struct {
-	PortData     uint16 `yaml:"data_port"`
-	PortWeb      uint16 `yaml:"web_port"`
-	LogMaxSize   int64  `yaml:"log_max_size"`
-	EnableProxy  bool   `yaml:"enable_proxy"`
-	ProxyAddress string `yaml:"proxy_address"`
-	ProxyURL     string `yaml:"proxy_url"`
+	PortData       uint16 `yaml:"data_port"`
+	PortWeb        uint16 `yaml:"web_port"`
+	LogMaxSize     int64  `yaml:"log_max_size"`
+	EnableProxy    bool   `yaml:"enable_proxy"`
+	ProxyAddress   string `yaml:"proxy_address"`
+	ProxyURL       string `yaml:"proxy_url"`
+	EnableKeyPress bool   `yaml:"enable_key_press"`
 }
 
 func configGetPath() string {
@@ -171,12 +172,15 @@ func configLoadScriptConfig(name string) (map[string]interface{}, error) {
 
 func configAppDefault() *configApp {
 	return &configApp{
-		PortData:     31593,
-		PortWeb:      31594,
-		LogMaxSize:   262144, // 256KB
-		EnableProxy:  true,
+		PortData:       31593,
+		PortWeb:        31594,
+		LogMaxSize:     262144, // 256KB
+		EnableProxy:    true,
+		EnableKeyPress: true,
+		//ProxyAddress: "proxy.fftools.net:31595",
 		ProxyAddress: "localhost:31595",
-		ProxyURL:     "http://localhost:31596/",
+		//ProxyURL:     "https://proxy.fftools.net/",
+		ProxyURL: "http://localhost:31596/",
 	}
 }
 

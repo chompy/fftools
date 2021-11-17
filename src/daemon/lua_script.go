@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	lua "github.com/yuin/gopher-lua"
 )
@@ -42,6 +43,7 @@ type luaScript struct {
 	Path       string
 	LastError  error
 	State      int
+	StateID    int64
 	Config     map[string]interface{}
 	L          *lua.LState
 	Lock       sync.Mutex
@@ -58,6 +60,7 @@ func luaLoadScript(name string) (*luaScript, error) {
 		ScriptName: name,
 		Path:       pathTo,
 		State:      LuaScriptInactive,
+		StateID:    time.Now().UnixMicro(),
 	}
 	if err := ls.load(); err != nil {
 		return ls, err
@@ -79,6 +82,7 @@ func (ls *luaScript) load() error {
 	if err != nil && !os.IsNotExist(err) && !errors.Is(err, ErrDefaultConfigNotFound) {
 		ls.LastError = err
 		ls.State = LuaScriptError
+		ls.StateID = time.Now().UnixMicro()
 		logLuaWarn(ls.L, err.Error())
 		actError(err, ls.ScriptName)
 		return err
@@ -93,6 +97,7 @@ func (ls *luaScript) load() error {
 	if err := ls.L.DoFile(ls.Path); err != nil {
 		ls.LastError = err
 		ls.State = LuaScriptError
+		ls.StateID = time.Now().UnixMicro()
 		logLuaWarn(ls.L, err.Error())
 		actError(err, ls.ScriptName)
 		return err
@@ -112,6 +117,7 @@ func (ls *luaScript) reload() error {
 	if err := ls.load(); err != nil {
 		ls.LastError = err
 		ls.State = LuaScriptError
+		ls.StateID = time.Now().UnixMicro()
 		logLuaWarn(ls.L, err.Error())
 		actError(err, ls.ScriptName)
 		return err
@@ -119,6 +125,7 @@ func (ls *luaScript) reload() error {
 	if err := ls.info(); err != nil {
 		ls.LastError = err
 		ls.State = LuaScriptError
+		ls.StateID = time.Now().UnixMicro()
 		logLuaWarn(ls.L, err.Error())
 		actError(err, ls.ScriptName)
 		return err
@@ -133,6 +140,7 @@ func (ls *luaScript) unload() {
 		ls.L.Close()
 		ls.L = nil
 		ls.State = LuaScriptInactive
+		ls.StateID = time.Now().UnixMicro()
 		ls.LastError = nil
 	}
 }
@@ -154,11 +162,13 @@ func (ls *luaScript) activate() error {
 	if err != nil {
 		ls.LastError = err
 		ls.State = LuaScriptError
+		ls.StateID = time.Now().UnixMicro()
 		logLuaWarn(ls.L, err.Error())
 		actError(err, ls.ScriptName)
 		return err
 	}
 	ls.State = LuaScriptActive
+	ls.StateID = time.Now().UnixMicro()
 	return nil
 }
 
@@ -177,6 +187,7 @@ func (ls *luaScript) info() error {
 	if err := ls.L.PCall(0, 1, nil); err != nil {
 		ls.LastError = err
 		ls.State = LuaScriptError
+		ls.StateID = time.Now().UnixMicro()
 		logLuaWarn(ls.L, err.Error())
 		actError(err, ls.ScriptName)
 		return err
@@ -204,7 +215,6 @@ func (ls *luaScript) Web(r *http.Request) (interface{}, error) {
 		queryTable.RawSetString(k, valueGoToLua(v))
 	}
 	luaRequest.RawSetString("query", queryTable)
-
 	luaFunc := ls.L.GetGlobal("web")
 	if luaFunc.Type() != lua.LTFunction {
 		return nil, nil
@@ -214,6 +224,7 @@ func (ls *luaScript) Web(r *http.Request) (interface{}, error) {
 	if err := ls.L.PCall(1, 1, nil); err != nil {
 		ls.LastError = err
 		ls.State = LuaScriptError
+		ls.StateID = time.Now().UnixMicro()
 		logLuaWarn(ls.L, err.Error())
 		actError(err, ls.ScriptName)
 		return nil, err

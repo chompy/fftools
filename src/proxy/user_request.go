@@ -19,7 +19,9 @@ package main
 
 import (
 	"encoding/binary"
+	"errors"
 	"log"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -63,6 +65,9 @@ func (u *ProxyUser) handleRequest(r *http.Request) (uint16, error) {
 		out[i+5] = urlBytes[i]
 	}
 	if _, err := u.connection.Write(out); err != nil {
+		if errors.Is(err, net.ErrClosed) {
+			u.connection = nil
+		}
 		return 0, err
 	}
 	return u.lastRequestId, nil

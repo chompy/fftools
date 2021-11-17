@@ -24,6 +24,8 @@ import (
 	lua "github.com/yuin/gopher-lua"
 )
 
+const logPath = "data/daemon.log"
+
 func logInfo(msg string, args ...interface{}) {
 	log.Printf("[INFO] "+msg, args...)
 }
@@ -34,6 +36,11 @@ func logWarn(msg string, args ...interface{}) {
 
 func logDebug(msg string, data interface{}) {
 	//log.Println("[DEBUG] "+msg, data)
+}
+
+func logPanic(err error) {
+	log.Printf("[PANIC] " + err.Error())
+	panic(err)
 }
 
 func logLuaInfo(L *lua.LState, msg string, args ...interface{}) {
@@ -57,3 +64,7 @@ func logLuaWarn(L *lua.LState, msg string, args ...interface{}) {
 func logLuaDebug(L *lua.LState, msg string, data interface{}) {
 	//logLua(L, "[DEBUG] "+msg+" %s", data)
 }
+
+/*func logFile(msg string) error {
+
+}*/

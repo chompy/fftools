@@ -28,6 +28,12 @@ import (
 var keyPressQueue = make([][]string, 0)
 
 func processKeyPressQueue() {
+	config := configAppLoad()
+	if !config.EnableKeyPress {
+		logInfo("Key presses are disabled.")
+		return
+	}
+	logInfo("Key presses are enabled.")
 	for {
 		for i, keys := range keyPressQueue {
 			for _, key := range keys {

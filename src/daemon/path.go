@@ -27,8 +27,6 @@ const dataPath = "data"
 const scriptPath = "scripts"
 const scriptWebPath = "web"
 
-//const logPath = "log"
-
 func getBasePath() string {
 	exePath, _ := os.Executable()
 	return filepath.Join(filepath.Dir(exePath), "..")
