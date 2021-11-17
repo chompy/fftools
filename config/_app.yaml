@@ -5,10 +5,12 @@
 
 # enable proxy to allow sharing of web views with other people
 # this will make all your web views available at https://proxy.fftools.net/[your id]/[script name]/
-enable_proxy: true
+enable_proxy: false
 
 # port to run web server on for web views, most users should not need to change this
 web_port: 31594
 
 # port to transmit data on from ACT to the fftools daemon, most users should not need to change this
 port_data: 31593
+
+enable_key_press: false

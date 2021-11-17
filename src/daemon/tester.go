@@ -70,14 +70,19 @@ func testerParse(data io.Reader) []LogLine {
 func testerReplay(logLines []LogLine) {
 	logInfo("Replay %d log lines.", len(logLines))
 	// generate encounter
+	newEnc := Encounter{
+		ID:        logLines[0].EncounterID,
+		StartTime: time.Now(),
+		Active:    true,
+		Zone:      "Test Area",
+	}
 	eventListenerDispatch(
 		"act:encounter",
-		Encounter{
-			ID:        logLines[0].EncounterID,
-			StartTime: time.Now(),
-			Active:    true,
-			Zone:      "Test Area",
-		},
+		newEnc,
+	)
+	eventListenerDispatch(
+		"act:encounter:change",
+		newEnc,
 	)
 	// read combatants
 	combatants := make([]Combatant, 0)

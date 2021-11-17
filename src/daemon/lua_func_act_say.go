@@ -71,6 +71,9 @@ func luaFuncActSayIf(L *lua.LState) int {
 		(id != 0 && localPlayerID != id) {
 		return 0
 	}
+	if name == "" && role == "" && job == "" && id == 0 {
+		return 0
+	}
 	return luaFuncActSay(L)
 }
 

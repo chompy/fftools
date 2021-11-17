@@ -44,6 +44,7 @@ local function on_log(l)
     if #jail_list == 3 and not has_called then
         table.sort(jail_list, jail_sort)
         for n, v in ipairs(jail_list) do
+            fft_log_info("Jail #" .. n .. " is " .. v .. ".")
             fft_say_if(n, {name=v})
             fft_event_dispatch("am:mark", v)
         end

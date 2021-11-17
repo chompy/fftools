@@ -29,7 +29,7 @@ using System.Threading.Tasks;
 using Advanced_Combat_Tracker;
 
 [assembly: AssemblyTitle("FFTools")]
-[assembly: AssemblyDescription("Extends FFXIV parsing with Lua scripts that support TTS callouts, web views, and more.")]
+[assembly: AssemblyDescription("Extends FFXIV parsing with Lua scripts that support TTS callouts, web UI, and more.")]
 [assembly: AssemblyCompany("Chompy#3436")]
 [assembly: AssemblyVersion("0.03")]
 
@@ -53,7 +53,7 @@ namespace ACT_Plugin
         const byte DATA_TYPE_PLAYER = 205;                      // Data type, request to send last player log line
         const byte DATA_TYPE_ACT_SAY = 206;                     // Data type, speak with TTS
         const byte DATA_TYPE_ACT_END = 207;                     // Data type, flag to end encounter
-        const byte DATA_TYPE_ACT_ERR = 208;                     // Data type, flag that an error has occured
+        const byte DATA_TYPE_ACT_UPDATE = 208;                  // Data type, flag that an update is ready
 
         const long TTS_TIMEOUT = 500;                           // Time in miliseconds to timeout TTS
         
@@ -404,6 +404,11 @@ namespace ACT_Plugin
                             if (lastPlayerChangeLine != null) {
                                 sendLogLine(lastPlayerChangeLine);
                             }
+                            break;
+                        }
+                        case DATA_TYPE_ACT_UPDATE:
+                        {
+                            DialogResult result = MessageBox.Show("An updated version of the FFTools plugin is ready. Please restart ACT for the changes to take effect.", "New Version", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
                             break;
                         }
                     }

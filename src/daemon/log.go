@@ -64,7 +64,3 @@ func logLuaWarn(L *lua.LState, msg string, args ...interface{}) {
 func logLuaDebug(L *lua.LState, msg string, data interface{}) {
 	//logLua(L, "[DEBUG] "+msg+" %s", data)
 }
-
-/*func logFile(msg string) error {
-
-}*/
