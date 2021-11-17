@@ -27,7 +27,7 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-const version = "0.02"
+const version = "0.03"
 
 func main() {
 	// set log output
