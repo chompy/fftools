@@ -29,16 +29,16 @@ using System.Threading.Tasks;
 using Advanced_Combat_Tracker;
 
 [assembly: AssemblyTitle("FFTools")]
-[assembly: AssemblyDescription("Extends FFXIV parsing with Lua scripts that support TTS callouts, web UI, and more.")]
+[assembly: AssemblyDescription("Extends FFXIV parsing with Lua scripts that support TTS callouts, web views, and more.")]
 [assembly: AssemblyCompany("Chompy#3436")]
-[assembly: AssemblyVersion("0.02")]
+[assembly: AssemblyVersion("0.03")]
 
 namespace ACT_Plugin
 {
     public class FFTools : UserControl, IActPluginV1
     {
 
-        const int VERSION_NUMBER = 2;
+        const int VERSION_NUMBER = 3;
 
         const UInt16 DAEMON_PORT = 31593;                       // Port to send to daemon on.
         
@@ -67,7 +67,6 @@ namespace ACT_Plugin
         private LogLineEventArgs lastPlayerChangeLine;          // Last player change log line
         private string lastScriptSelected;                      // Name of last script selected in list
         private Process scriptDaemon;                           // Instance of script daemon process
-        private FileSystemWatcher watcher;                      // Script config watcher
 
         private System.Windows.Forms.ListBox formScriptList;    // Form element containing list of available Lua scripts
         private System.Windows.Forms.TextBox formScriptInfo;    // Form element containing information about selected script
@@ -193,8 +192,6 @@ namespace ACT_Plugin
                     p.tpPluginSpace.Text = "FFTools";
                 }
             }
-            // enable watcher
-            this.watchScriptConfigs();
         }
 
         public void DeInitPlugin()
@@ -221,8 +218,6 @@ namespace ACT_Plugin
             if (this.scriptDaemon != null) {
                 this.scriptDaemon.Kill();
             }
-            // disable watcher
-            this.watcher.EnableRaisingEvents = false;
             // update plugin status text
             lblStatus.Text = "Plugin Exited";
         }
@@ -605,17 +600,6 @@ namespace ACT_Plugin
                 return "";
             }
             return path;
-        }
-
-        void watchScriptConfigs()
-        {
-            string path = getPluginDirectory() + "\\config";
-            this.watcher = new FileSystemWatcher();
-            this.watcher.Path = path;
-            this.watcher.NotifyFilter = NotifyFilters.LastWrite;
-            this.watcher.Filter = "*.yaml";
-            this.watcher.Changed += new FileSystemEventHandler(this.onScriptConfigChanges);
-            this.watcher.EnableRaisingEvents = true;
         }
 
         void onScriptConfigChanges(object source, FileSystemEventArgs e)

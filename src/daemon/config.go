@@ -177,10 +177,10 @@ func configAppDefault() *configApp {
 		LogMaxSize:     262144, // 256KB
 		EnableProxy:    true,
 		EnableKeyPress: true,
-		//ProxyAddress:   "proxy.fftools.net:31595",
-		ProxyAddress: "localhost:31595",
-		//ProxyURL: "https://proxy.fftools.net/",
-		ProxyURL: "http://localhost:31596/",
+		ProxyAddress:   "proxy.fftools.net:31595",
+		//ProxyAddress: "localhost:31595",
+		ProxyURL: "https://proxy.fftools.net/",
+		//ProxyURL: "http://localhost:31596/",
 	}
 }
 

@@ -72,7 +72,8 @@ end
 
 function info()
     return {
-        name = "UWU Jails Callout",
-        desc = "Calls out your Titan jail number in The Weapon's Refrain (Ultimate). Compatible with Auto Markers."
+        name = "UWU Jails",
+        desc = "Calls out your Titan jail number in The Weapon's Refrain (Ultimate). If the 'Auto Markers' script is enabled then this will also mark the players.",
+        version = "0.01"
     }
 end

@@ -12,6 +12,7 @@ end
 function info()
     return {
         name = "Auto End Encounter",
-        desc = "Tells ACT to end the encounter upon party wipe."
+        desc = "Tells ACT to end the encounter upon party wipe.",
+        version = "0.01"
     }
 end

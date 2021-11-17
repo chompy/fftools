@@ -39,6 +39,7 @@ end
 function info()
     return {
         name = "UCOB Nael Quotes",
-        desc = "Calls out the mechanics for the Nael quotes in UCOB."
+        desc = "Calls out the Nael quote mechanics in The Unending Coil of Bahamut (Ultimate).",
+        version = "0.01"
     }
 end

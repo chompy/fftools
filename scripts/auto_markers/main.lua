@@ -65,6 +65,7 @@ end
 function info()
     return {
         name = "Auto Markers",
-        desc = "Provides event for auto marking player characters."
+        desc = "Enables the use of auto player markers. Used for UWU Titan Jails (and maybe more).",
+        version = "0.01"
     }
 end

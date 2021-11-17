@@ -12,6 +12,7 @@ end
 function info()
     return {
         name = "Live Parse",
-        desc = "Output parses to web server in real time."
+        desc = "Output parses to web view in real time.",
+        version = "0.01"
     }
 end

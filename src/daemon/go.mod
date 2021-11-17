@@ -4,15 +4,18 @@ go 1.17
 
 require (
 	github.com/go-vgo/robotgo v0.100.6
+	github.com/mouuff/go-rocket-update v1.5.2
 	github.com/yuin/gopher-lua v0.0.0-20210529063254-f4c35e4016d9
+	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
+	github.com/BurntSushi/toml v0.4.1 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/go-ole/go-ole v1.2.5 // indirect
+	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
-	github.com/oklog/ulid/v2 v2.0.2 // indirect
 	github.com/otiai10/gosseract v2.2.1+incompatible // indirect
 	github.com/robotn/gohook v0.31.2 // indirect
 	github.com/robotn/xgb v0.0.0-20190912153532-2cb92d044934 // indirect
@@ -25,5 +28,4 @@ require (
 	github.com/vcaesar/tt v0.20.0 // indirect
 	golang.org/x/image v0.0.0-20210628002857-a66eb6448b8d // indirect
 	golang.org/x/sys v0.0.0-20210925032602-92d5a993a665 // indirect
-	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 )

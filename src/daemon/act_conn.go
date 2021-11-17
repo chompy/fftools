@@ -29,6 +29,7 @@ const dataTypeActScriptReload = 204
 const dataTypeActPlayer = 205
 const dataTypeActSay = 206
 const dataTypeActEnd = 207
+const dataTypeActUpdated = 208
 
 var actConn *net.UDPConn = nil
 var remoteAddr *net.UDPAddr = nil
@@ -204,4 +205,9 @@ func actError(err error, scriptName string) error {
 func actRequestPlayer() error {
 	logInfo("[ACT] Request primary player.")
 	return actRawSend([]byte{byte(dataTypeActPlayer)})
+}
+
+func actRequestUpdate() error {
+	logInfo("[ACT] Request version update.")
+	return actRawSend([]byte{byte(dataTypeActUpdated)})
 }

@@ -66,6 +66,7 @@ end
 function info()
     return {
         name = "TEA Third Nisi",
-        desc = "Calls the player's partner for third Nisi pass in TEA."
+        desc = "Calls the player's partner for third Nisi pass in The Epic of Alexander (Ultimate).",
+        version = "0.01"
     }
 end

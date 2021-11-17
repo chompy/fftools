@@ -12,6 +12,7 @@ end
 function info()
     return {
         name = "TEA Limit Cut Number",
-        desc = "Calls the player's limit cut number in TEA and other fights that use the same markers."
+        desc = "Calls the player's limit cut number in The Epic of Alexander (Ultimate) and other fights that use the same markers.",
+        version = "0.01"
     }
 end

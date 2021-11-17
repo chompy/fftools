@@ -71,6 +71,7 @@ end
 function info()
     return {
         name = "TEA Trine Callouts",
-        desc = "Calls starting and ending spots for trines, using standard markers with C-1-3-4 in TEA."
+        desc = "Calls starting and ending spots for trines, using standard markers with C-1-3-4 in The Epic of Alexander (Ultimate).",
+        version = "0.01"
     }
 end

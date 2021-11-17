@@ -1,10 +1,8 @@
-- Seperate log files for each script with log rotation
 - View logs from ACT plugin
 - Import scripts from Git
 - Script auto update
 - Script repository
-- ACT plugin auto update
-- Move config watcher to Go daemon
-- Check if ACT sends party order data in logs
+- Auto update more than just daemon exe
+- Reload scripts when config files are changed
 - Recreate original ffliveparse features
 - Overlays

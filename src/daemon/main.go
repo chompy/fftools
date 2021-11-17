@@ -22,16 +22,43 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/mouuff/go-rocket-update/pkg/provider"
+	"github.com/mouuff/go-rocket-update/pkg/updater"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
+const version = "0.03"
+
 func main() {
+	// set log output
 	log.SetOutput(&lumberjack.Logger{
 		Filename:   filepath.Join(getBasePath(), logPath),
 		MaxSize:    10,
 		MaxBackups: 0,
 	})
+	// set auto update
+	u := &updater.Updater{
+		Provider: &provider.Github{
+			RepositoryURL: "github.com/chompy/fftools",
+			ArchiveName:   "fftools.zip",
+		},
+		ExecutableName: "fftools_daemon.exe",
+		Version:        "v" + version,
+	}
+	go func() {
+		s, err := u.Update()
+		if err != nil {
+			logWarn("[UPDATE] " + err.Error())
+			return
+		}
+		if s == updater.Updated {
+			actRequestUpdate()
+		}
+	}()
+
+	// enable scripts
 	luaEnableScripts()
+	// run testers if test data provided
 	stat, _ := os.Stdin.Stat()
 	if (stat.Mode() & os.ModeCharDevice) == 0 {
 		testLogLines := testerParse(os.Stdin)
@@ -39,11 +66,14 @@ func main() {
 			testerReplay(testLogLines)
 		}
 	}
+	// enable proxy
 	config := configAppLoad()
 	if config.EnableProxy {
 		go webProxyConnect()
 	}
+	// enable web view
 	go initWeb()
+	// listen for act packets
 	if err := actListenUDP(); err != nil {
 		logPanic(err)
 	}
