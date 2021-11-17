@@ -20,6 +20,7 @@ package main
 import (
 	"encoding/binary"
 	"errors"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -73,21 +74,26 @@ func (u *ProxyUser) handleRequest(r *http.Request) (uint16, error) {
 	return u.lastRequestId, nil
 }
 
-func (u *ProxyUser) handleResponse(data []byte) error {
+func (u *ProxyUser) handleResponse() error {
 	defer u.sync.Unlock()
 	u.sync.Lock()
-	if data[0] != proxyMsgWebResp {
-		return ErrUnexpectedMessageType
+	respInfoBuf := make([]byte, 6)
+	if _, err := io.ReadFull(u.connection, respInfoBuf); err != nil {
+		return err
 	}
-	id := binary.LittleEndian.Uint16(data[1:])
-	respLen := binary.LittleEndian.Uint32(data[3:])
+	id := binary.LittleEndian.Uint16(respInfoBuf[0:])
+	respLen := binary.LittleEndian.Uint32(respInfoBuf[2:])
 	if respLen+6 > responseMaxSize {
 		return ErrResponseTooLarge
 	}
 	log.Printf("[INFO] [%s] Recieved response #%d (%d bytes).", u.Uid, id, respLen)
+	respDataBuf := make([]byte, respLen)
+	if _, err := io.ReadFull(u.connection, respDataBuf); err != nil {
+		return err
+	}
 	for i, ureq := range u.requests {
 		if ureq.id == id {
-			u.requests[i].resp = data[7 : respLen+7]
+			u.requests[i].resp = respDataBuf
 			return nil
 		}
 	}

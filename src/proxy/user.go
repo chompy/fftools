@@ -18,6 +18,7 @@ along with FFTools.  If not, see <https://www.gnu.org/licenses/>.
 package main
 
 import (
+	"io"
 	"log"
 	"net"
 	"sync"
@@ -58,21 +59,25 @@ func addProxyUser(uid string, secret string, conn net.Conn) *ProxyUser {
 	u.requests = make([]userRequest, 0)
 	u.lastRequestTime = time.Now()
 	go func(index int) {
-		buf := make([]byte, responseMaxSize)
+		msgTypeBuf := make([]byte, 1)
 		for {
 			// check response
 			u := proxyUsers[index]
-			n, err := u.connection.Read(buf)
+			n, err := io.ReadFull(u.connection, msgTypeBuf)
 			if err != nil {
 				log.Printf("[WARN] proxy read response :: %s", err.Error())
 				u.lastRequestTime = time.Time{}
-				/*if errors.Is(err, io.EOF) || errors.Is(err, net.ErrClosed) {
-					u.lastRequestTime = time.Time{}
-				}*/
 			}
+			// handle response
 			if n > 0 {
-				if err := u.handleResponse(buf); err != nil {
-					log.Printf("[WARN] proxy handle response :: %s", err.Error())
+				switch msgTypeBuf[0] {
+				case proxyMsgWebResp:
+					{
+						if err := u.handleResponse(); err != nil {
+							log.Printf("[WARN] proxy handle response :: %s", err.Error())
+						}
+						break
+					}
 				}
 			}
 			// clean up
