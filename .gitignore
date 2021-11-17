@@ -1,5 +1,6 @@
 *.exe
 *.exe~
+/dist
 /config/*
 !/config/_app.yaml
 /data/*
