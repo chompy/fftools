@@ -1,7 +1,7 @@
 local function on_log(l)
     if l.type == 0x1B and l.icon_id >= 79 and l.icon_id <= 86 then
         local number = l.icon_id - 78
-        fft_say_if(number, {id=l.target_id})
+        fft_say_if(number, {name=l.target_name})
     end
 end
 

@@ -37,24 +37,26 @@ func luaFuncMe(L *lua.LState) int {
 }
 
 func findLocalPlayerLogLine(event *eventDispatch) {
-	// TODO reset on new encounter?
-	if localPlayerName != "" && localPlayerID > 0 {
-		return
-	}
 	// collect player data from log event
 	logEvent := event.Data.(ParsedLogEvent)
 	switch logEvent.Type {
-	case LogTypeNetworkAbility:
+	case LogTypeNetworkUpdateHP:
 		{
-			if localPlayerName != "" && logEvent.Values["source_name"].(string) == localPlayerName {
-				localPlayerID = logEvent.Values["source_id"].(int)
-				logInfo("Local player is %s (%d).", localPlayerName, localPlayerID)
+			if localPlayerName != "" && logEvent.Values["target_name"].(string) == localPlayerName {
+				newLocalPlayerID := logEvent.Values["target_id"].(int)
+				if localPlayerID != newLocalPlayerID {
+					logInfo("Set active player to %s (#%d).", localPlayerName, newLocalPlayerID)
+				}
+				localPlayerID = newLocalPlayerID
 			}
 			break
 		}
 	case LogTypeChangePrimaryPlayer:
 		{
-			localPlayerName = logEvent.Values["name"].(string)
+			localPlayerName = logEvent.Values["target_name"].(string)
+			// reset
+			localPlayerID = 0
+			localPlayerCombatant = Combatant{ID: 0, Job: ""}
 			break
 		}
 	}

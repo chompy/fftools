@@ -61,7 +61,10 @@ func eventListenerDispatch(event string, data interface{}) {
 	if event == "" {
 		return
 	}
-	logDebug("Dispatch event.", eventDispatch{Event: event, Data: data})
+	// don't log the log_line event as it's too noisy
+	if event != "act:log_line" {
+		logDebug("Dispatch event.", eventDispatch{Event: event, Data: data})
+	}
 	for _, listener := range eventListeners {
 		if listener.Event == event {
 			ed := &eventDispatch{

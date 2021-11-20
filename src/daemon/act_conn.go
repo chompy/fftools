@@ -26,14 +26,12 @@ const dataTypeActScripts = 201
 const dataTypeActScriptEnable = 202
 const dataTypeActScriptDisable = 203
 const dataTypeActScriptReload = 204
-const dataTypeActPlayer = 205
-const dataTypeActSay = 206
-const dataTypeActEnd = 207
-const dataTypeActUpdated = 208
+const dataTypeActSay = 205
+const dataTypeActEnd = 206
+const dataTypeActUpdated = 207
 
 var actConn *net.UDPConn = nil
 var remoteAddr *net.UDPAddr = nil
-var hasRequestedPlayer = false
 
 func actListenUDP() error {
 	config := configAppLoad()
@@ -54,11 +52,6 @@ func actListenUDP() error {
 			continue
 		}
 		remoteAddr = remote
-		// once connection is established request that act send last player change line
-		if !hasRequestedPlayer {
-			hasRequestedPlayer = true
-			actRequestPlayer()
-		}
 		// decode
 		messageType := buf[0]
 		switch messageType {
@@ -200,11 +193,6 @@ func actError(err error, scriptName string) error {
 		}
 	}
 	return actSendScripts()
-}
-
-func actRequestPlayer() error {
-	logInfo("[ACT] Request primary player.")
-	return actRawSend([]byte{byte(dataTypeActPlayer)})
 }
 
 func actRequestUpdate() error {

@@ -50,10 +50,9 @@ namespace ACT_Plugin
         const byte DATA_TYPE_SCRIPT_ENABLE = 202;               // Data type, enable script
         const byte DATA_TYPE_SCRIPT_DISABLE = 203;              // Data type, disable script
         const byte DATA_TYPE_SCRIPT_RELOAD = 204;               // Data type, reload script
-        const byte DATA_TYPE_PLAYER = 205;                      // Data type, request to send last player log line
-        const byte DATA_TYPE_ACT_SAY = 206;                     // Data type, speak with TTS
-        const byte DATA_TYPE_ACT_END = 207;                     // Data type, flag to end encounter
-        const byte DATA_TYPE_ACT_UPDATE = 208;                  // Data type, flag that an update is ready
+        const byte DATA_TYPE_ACT_SAY = 205;                     // Data type, speak with TTS
+        const byte DATA_TYPE_ACT_END = 206;                     // Data type, flag to end encounter
+        const byte DATA_TYPE_ACT_UPDATE = 207;                  // Data type, flag that an update is ready
 
         const long TTS_TIMEOUT = 500;                           // Time in miliseconds to timeout TTS
         
@@ -64,9 +63,9 @@ namespace ACT_Plugin
         Thread listenThread;                                    // Thread for listening for incoming data
         private long lastTTSTime = 0;                           // Last time TTS was timed out
         private List<string[]> scriptData;                      // List of available Lua scripts
-        private LogLineEventArgs lastPlayerChangeLine;          // Last player change log line
         private string lastScriptSelected;                      // Name of last script selected in list
         private Process scriptDaemon;                           // Instance of script daemon process
+        private Thread scriptDaemonExitThread;                  // Thread to listen for script daemon exit
 
         private System.Windows.Forms.ListBox formScriptList;    // Form element containing list of available Lua scripts
         private System.Windows.Forms.TextBox formScriptInfo;    // Form element containing information about selected script
@@ -164,7 +163,11 @@ namespace ACT_Plugin
             this.scriptDaemon.StartInfo.FileName = this.getPluginDirectory() + "\\bin\\fftools_daemon.exe";
             this.scriptDaemon.StartInfo.CreateNoWindow = true;
             this.scriptDaemon.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            this.scriptDaemon.StartInfo.UseShellExecute = false;
+            this.scriptDaemon.StartInfo.RedirectStandardError = true;
             this.scriptDaemon.Start();
+            this.scriptDaemonExitThread = new Thread(new ThreadStart(this.listenDaemonExit));
+            this.scriptDaemonExitThread.Start();
             Thread.Sleep(250);
             // status label
             lblStatus = pluginStatusText; // Hand the status label's reference to our local var
@@ -209,11 +212,15 @@ namespace ACT_Plugin
             this.formScriptDir.Click -= ScriptDir_Click;
             this.formAppConfig.Click -= AppConfig_Click;
             // close udp client
-            udpClient.Close();
-            if (listenThread != null) {
-                listenThread.Abort();
+            this.udpClient.Close();
+            if (this.listenThread != null) {
+                this.listenThread.Abort();
             }
-            udpListener.Close();
+            this.udpListener.Close();
+            // abort script daemon exit thread
+            if (this.scriptDaemonExitThread != null) {
+                this.scriptDaemonExitThread.Abort();
+            }
             // close process
             if (this.scriptDaemon != null) {
                 this.scriptDaemon.Kill();
@@ -341,9 +348,6 @@ namespace ACT_Plugin
             listenThread = new Thread(new ThreadStart(udpListen));
             listenThread.Start();
             sendScriptRequest();
-            if (lastPlayerChangeLine != null) {
-                sendLogLine(lastPlayerChangeLine);
-            }
         }
 
         void sendUdp(ref List<Byte> sendData)
@@ -399,13 +403,6 @@ namespace ACT_Plugin
                             }
                             break;
                         }
-                        case DATA_TYPE_PLAYER:
-                        {
-                            if (lastPlayerChangeLine != null) {
-                                sendLogLine(lastPlayerChangeLine);
-                            }
-                            break;
-                        }
                         case DATA_TYPE_ACT_UPDATE:
                         {
                             DialogResult result = MessageBox.Show("An updated version of the FFTools plugin is ready. Please restart ACT for the changes to take effect.", "New Version", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
@@ -417,6 +414,16 @@ namespace ACT_Plugin
                 }
             }
             //udpListener.Close();
+        }
+
+        void listenDaemonExit()
+        {
+            if (this.scriptDaemon == null) {
+                return;
+            }
+            string err = this.scriptDaemon.StandardError.ReadToEnd();
+            this.scriptDaemon.WaitForExit();
+            MessageBox.Show("The FFTools Lua daemon closed unexpectedly (exit code " + this.scriptDaemon.ExitCode + ")\n\n"+err, "FFTools Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         void prepareDateTime(ref List<Byte> sendData, DateTime value) 
@@ -528,9 +535,6 @@ namespace ACT_Plugin
             prepareDateTime(ref sendData, logInfo.detectedTime);
             // line
             prepareString(ref sendData, logInfo.logLine);
-            if (logInfo.logLine.Contains(" 02:Changed primary player to")) {
-                this.lastPlayerChangeLine = logInfo;
-            }
             // send
             sendUdp(ref sendData);
         }

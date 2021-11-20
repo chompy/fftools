@@ -193,7 +193,7 @@ var logRegexes = map[int]*parseInstructions{
 	},
 	LogTypeChangePrimaryPlayer: &parseInstructions{
 		regexp.MustCompile(` 02:Changed primary player to (.*)\.`),
-		[]string{"name|str"},
+		[]string{"target_name|str"},
 	},
 	LogTypeNetworkDeath: &parseInstructions{
 		regexp.MustCompile(` 19:([a-zA-Z0-9'\- ]*) was defeated by ([a-zA-Z0-9'\- ]*)`),
@@ -201,15 +201,19 @@ var logRegexes = map[int]*parseInstructions{
 	},
 	LogTypeRemoveCombatant: &parseInstructions{
 		regexp.MustCompile(` 04:([A-F0-9]*):Removing combatant ([a-zA-Z0-9'\- ]*)\.  Max HP####([0-9]*)\.`),
-		[]string{"target_id|int", "target_name|str", "target_max_hp|int"},
+		[]string{"target_id|hex", "target_name|str", "target_max_hp|hex"},
 	},
 	LogTypeNetworkTargetIcon: &parseInstructions{
 		regexp.MustCompile(` 1B:([A-F0-9]*):([a-zA-Z0-9'\- ]*):....:....:([A-F0-9]*):`),
-		[]string{"target_id|int", "target_name|str", "icon_id|int"},
+		[]string{"target_id|hex", "target_name|str", "icon_id|hex"},
 	},
 	LogTypeNetworkBuff: &parseInstructions{
 		regexp.MustCompile(` 1A:([A-F0-9]*):([a-zA-Z0-9'\- ]*) gains the effect of (.*) from (.*) for (.*) Seconds`),
-		[]string{"target_id|int", "target_name|str", "effect_name|str", "effect_duration|float"},
+		[]string{"target_id|hex", "target_name|str", "effect_name|str", "effect_duration|float"},
+	},
+	LogTypeNetworkUpdateHP: &parseInstructions{
+		regexp.MustCompile(` 27:([A-F0-9]*):([a-zA-Z0-9'\- ]*):([0-9]*):([0-9]*):([0-9]*):([0-9]*):.*:.*:([\-\.0-9]*):([\-\.0-9]*):([\-\.0-9]*):([\-\.0-9]*)`),
+		[]string{"target_id|hex", "target_name|str", "target_hp|int", "target_max_hp|int", "target_mp|int", "target_max_mp|int", "target_x|float", "target_y|float", "target_z|float", "target_heading|float"},
 	},
 }
 
@@ -384,6 +388,7 @@ func ParseLogEvent(logLine LogLine) (ParsedLogEvent, error) {
 					}
 				}
 			}
+			logDebug("[LOG LINE] Action: ", out)
 			break
 		}
 	case LogTypePartyList:
@@ -394,6 +399,7 @@ func ParseLogEvent(logLine LogLine) (ParsedLogEvent, error) {
 			for i := 0; i < int(count); i++ {
 				out.Values["ids"].([]int)[i], _ = hexToInt(fields[i+2])
 			}
+			logDebug("[LOG LINE] Party list: ", out)
 			break
 		}
 	default:
@@ -404,7 +410,7 @@ func ParseLogEvent(logLine LogLine) (ParsedLogEvent, error) {
 				for index, field := range instructions.Fields {
 					fieldSplit := strings.Split(field, "|")
 					switch fieldSplit[1] {
-					case "int":
+					case "hex":
 						{
 							out.Values[fieldSplit[0]] = 0
 							if len(match) > 0 {
@@ -423,6 +429,17 @@ func ParseLogEvent(logLine LogLine) (ParsedLogEvent, error) {
 							}
 							break
 						}
+					case "int":
+						{
+							out.Values[fieldSplit[0]] = float64(0)
+							if len(match) > 0 {
+								value, err := strconv.ParseInt(match[0][index+1], 10, 64)
+								if err == nil {
+									out.Values[fieldSplit[0]] = value
+								}
+							}
+							break
+						}
 					case "float":
 						{
 							out.Values[fieldSplit[0]] = float64(0)
@@ -435,7 +452,9 @@ func ParseLogEvent(logLine LogLine) (ParsedLogEvent, error) {
 						}
 					}
 				}
+				logDebug("[LOG LINE] 0x"+logLineString[15:17]+": ", out)
 			}
+
 			break
 		}
 	}

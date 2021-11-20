@@ -57,6 +57,7 @@ local function on_encounter(e)
     jail_list = {}
     encounter_id = e.id
     has_called = false
+    clear_marks()
 end
 
 function web()

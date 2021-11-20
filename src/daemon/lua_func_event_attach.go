@@ -37,7 +37,7 @@ func luaFuncEventAttach(L *lua.LState) int {
 func luaListenCallback(event *eventDispatch) {
 	L := event.Listener.Data.([]interface{})[0].(*lua.LState)
 	callback := event.Listener.Data.([]interface{})[1].(*lua.LFunction)
-	logLuaDebug(L, "Recieved event.", event)
+	//logLuaDebug(L, "Recieved event.", event)
 	ls := L.GetGlobal(luaGlobalScriptData).(*lua.LUserData).Value.(*luaScript)
 	ls.Lock.Lock()
 	defer ls.Lock.Unlock()

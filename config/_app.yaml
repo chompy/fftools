@@ -13,4 +13,4 @@ web_port: 31594
 # port to transmit data on from ACT to the fftools daemon, most users should not need to change this
 port_data: 31593
 
-enable_key_press: false
+enable_key_press: true

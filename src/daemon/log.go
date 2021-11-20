@@ -35,7 +35,7 @@ func logWarn(msg string, args ...interface{}) {
 }
 
 func logDebug(msg string, data interface{}) {
-	//log.Println("[DEBUG] "+msg, data)
+	log.Println("[DEBUG] "+msg, data)
 }
 
 func logPanic(err error) {
@@ -62,5 +62,10 @@ func logLuaWarn(L *lua.LState, msg string, args ...interface{}) {
 }
 
 func logLuaDebug(L *lua.LState, msg string, data interface{}) {
-	//logLua(L, "[DEBUG] "+msg+" %s", data)
+	scriptName := "?"
+	if L != nil {
+		scriptName = L.GetGlobal(luaGlobalScriptName).String()
+	}
+	msg = fmt.Sprintf("[%s] %s", scriptName, msg)
+	logDebug(msg, data)
 }

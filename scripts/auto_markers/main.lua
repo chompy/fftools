@@ -38,6 +38,7 @@ local function get_combatant_index(combatant)
             return k
         end
     end
+    fft_log_warn("Could not find keypress for '" .. combatant.name .. "'.")
     return -1
 end
 
