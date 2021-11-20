@@ -27,7 +27,7 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-const version = "0.03"
+const version = "0.04"
 
 func main() {
 	// set log output
@@ -40,7 +40,7 @@ func main() {
 	u := &updater.Updater{
 		Provider: &provider.Github{
 			RepositoryURL: "github.com/chompy/fftools",
-			ArchiveName:   "fftools.zip",
+			ArchiveName:   "fftools_update.zip",
 		},
 		ExecutableName: "fftools_daemon.exe",
 		Version:        "v" + version,

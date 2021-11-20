@@ -5,12 +5,14 @@
 
 # enable proxy to allow sharing of web views with other people
 # this will make all your web views available at https://proxy.fftools.net/[your id]/[script name]/
-enable_proxy: false
+enable_proxy: true
+
+# enable scripts to execute keyboard button presses, this is used for uwu titan jail
+# auto markers, but could be used by any script to execute keyboard button presses
+enable_key_press: true
 
 # port to run web server on for web views, most users should not need to change this
 web_port: 31594
 
 # port to transmit data on from ACT to the fftools daemon, most users should not need to change this
 port_data: 31593
-
-enable_key_press: true
