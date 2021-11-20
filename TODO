@@ -4,5 +4,13 @@
 - Script repository
 - Auto update more than just daemon exe
 - Reload scripts when config files are changed
-- Recreate original ffliveparse features
 - Overlays
+- Lua function, 'require', to import other Lua script
+- Lua function, 'enabled_scripts', to list all scripts currently enabled
+- Event, 'act:tts', fires when a text-to-speech message is spoken
+- Lua script, web view, show abilities player used in real time for stream overlays
+- Lua script, web view, TTS passthru, forward all TTS messages to web view, allow user to type their name in so 'fft_say_if' can work
+- Lua script, web view, display other web views in iframes and allow user to place them in a grid
+- Lua script, web view, timeline of current/last encounter (the FFLiveParse timeline view)
+- Lua script, web view, easy to read game log viewer, display combat actions, etc (the FFLiveParse log view)
+- Lua script, web view, graph of DPS/HPS/etc over the course of the current/last encounter (the FFLiveParse graph view)

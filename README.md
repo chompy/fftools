@@ -12,10 +12,16 @@ Extends Final Fantasy XIV log parsing in Advanced Combat Tracker (ACT) with Lua 
 3. Click 'Add/Enable Plugin.'
 4. Click on the 'FFTools' tab. A list of available scripts will be on the left side. Click on a script name and then click the 'Enable' button to enable the script.
 
+- You might get a Windows firewall alert. This is because the ACT plugin launches a seperate application to run the Lua scripts. This application communicates with ACT over an internal network connection.
 
 ## Web View
 
-Some scripts provide a webpage view which provides additonal visual information. These web views can be used in OBS as part of your streaming overlay or can be shared with other players who can't use ACT.
+Some scripts provide a web view which provides additonal visual information. These web views can be used in OBS as part of your streaming overlay or can be shared with other players who can't use ACT. To access the web view just click "Open Web View" while the desired script is selected, it should then open a new browser tab. The link in the browser's address bar can be shared with other players!
+
+### Disable Sharable Web Views
+
+By default web views are made publically available via a proxy to fftools.net. This can be disabled by clicking "Edit Main Plugin Config" and changing the line (in the resulting notepad file that opens) containing `enable_proxy: true` to `enable_proxy: false`.
+Web views will still be available on your local machine at http://localhost:31594. You can also enable port forwarding in your router to share web views without the use of the FFTools proxy.
 
 
 ## Scripting API
