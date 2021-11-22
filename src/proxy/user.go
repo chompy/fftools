@@ -61,13 +61,14 @@ func addProxyUser(uid string, secret string, conn net.Conn) *ProxyUser {
 	go func(index int) {
 		msgTypeBuf := make([]byte, 1)
 		for {
+			u := proxyUsers[index]
+			// check that connection is set
 			if u.connection == nil {
 				log.Printf("[WARN] Nil connection found for UID %s.", u.Uid)
 				proxyUsers = append(proxyUsers[index:], proxyUsers[:index+1]...)
 				return
 			}
 			// check response
-			u := proxyUsers[index]
 			n, err := io.ReadFull(u.connection, msgTypeBuf)
 			if err != nil {
 				log.Printf("[WARN] proxy read response :: %s", err.Error())
