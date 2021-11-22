@@ -41,7 +41,13 @@ type ProxyUser struct {
 var proxyUsers = make([]*ProxyUser, 0)
 
 func addProxyUser(uid string, secret string, conn net.Conn) *ProxyUser {
+	// uid and secret can't be empty
+	if uid == "" || secret == "" {
+		return nil
+	}
+	// fetch existing
 	u := getProxyUser(uid)
+	// create new
 	if u == nil {
 		u = &ProxyUser{
 			Uid:    uid,
@@ -52,7 +58,7 @@ func addProxyUser(uid string, secret string, conn net.Conn) *ProxyUser {
 			log.Printf("[WARN] persist users :: %s", err.Error())
 		}
 	}
-	if u.Secret != secret {
+	if u.Uid == "" || u.Secret == "" || u.Secret != secret {
 		return nil
 	}
 	u.connection = conn
@@ -64,7 +70,7 @@ func addProxyUser(uid string, secret string, conn net.Conn) *ProxyUser {
 			u := proxyUsers[index]
 			// check that connection is set
 			if u.connection == nil {
-				log.Printf("[WARN] Nil connection found for UID %s.", u.Uid)
+				log.Printf("[WARN] Nil connection found.")
 				proxyUsers = append(proxyUsers[index:], proxyUsers[:index+1]...)
 				return
 			}
