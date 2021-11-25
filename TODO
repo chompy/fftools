@@ -14,3 +14,4 @@
 - Lua script, web view, timeline of current/last encounter (the FFLiveParse timeline view)
 - Lua script, web view, easy to read game log viewer, display combat actions, etc (the FFLiveParse log view)
 - Lua script, web view, graph of DPS/HPS/etc over the course of the current/last encounter (the FFLiveParse graph view)
+- Lua script, web view, display information about the current mechanic, brief desc of who is doing what (UWU Jails, Nisi passes, etc)
