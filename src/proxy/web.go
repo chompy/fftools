@@ -43,7 +43,6 @@ func webListen() error {
 		w.WriteHeader(http.StatusOK)
 		w.Write(dataBytes)
 	})
-
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		pathSplit := strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")
 		// home

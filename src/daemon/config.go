@@ -40,6 +40,7 @@ type configApp struct {
 	ProxyAddress   string `yaml:"proxy_address"`
 	ProxyURL       string `yaml:"proxy_url"`
 	EnableKeyPress bool   `yaml:"enable_key_press"`
+	EnableTTS      bool   `yaml:"enable_tts"`
 }
 
 func configGetPath() string {
@@ -177,6 +178,7 @@ func configAppDefault() *configApp {
 		LogMaxSize:     262144, // 256KB
 		EnableProxy:    true,
 		EnableKeyPress: true,
+		EnableTTS:      true,
 		ProxyAddress:   "proxy.fftools.net:31595",
 		//ProxyAddress: "localhost:31595",
 		ProxyURL: "https://proxy.fftools.net/",

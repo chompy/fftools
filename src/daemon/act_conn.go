@@ -175,6 +175,10 @@ func actSendScripts() error {
 }
 
 func actSay(text string) error {
+	config := configAppLoad()
+	if !config.EnableTTS {
+		return nil
+	}
 	return actRawSend(
 		append([]byte{byte(dataTypeActSay)}, []byte(text)...),
 	)

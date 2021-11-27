@@ -34,7 +34,7 @@ func main() {
 	log.SetOutput(&lumberjack.Logger{
 		Filename:   filepath.Join(getBasePath(), logPath),
 		MaxSize:    10,
-		MaxBackups: 0,
+		MaxBackups: 3,
 	})
 	// set auto update
 	u := &updater.Updater{
