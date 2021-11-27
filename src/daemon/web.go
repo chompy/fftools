@@ -29,6 +29,17 @@ import (
 
 func initWeb() {
 	http.HandleFunc("/favicon.ico", webServeFavicon)
+	http.HandleFunc("/header.js", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/javascript")
+		dataBytes, err := base64.StdEncoding.DecodeString(assetHeader)
+		if err != nil {
+			logWarn(err.Error())
+			webHandleError(w)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write(dataBytes)
+	})
 	http.HandleFunc("/", webHandle)
 	config := configAppLoad()
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", config.PortWeb), nil); err != nil {

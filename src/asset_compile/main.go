@@ -52,7 +52,7 @@ func main() {
 			varName := strcase.ToLowerCamel(varNamePrefix + strings.TrimSuffix(name, ".html"))
 			line := fmt.Sprintf("const %s = \"%s\"\n", varName, data)
 			out = append(out, []byte(line)...)
-		} else if strings.HasSuffix(name, ".ico") {
+		} else if strings.HasSuffix(name, ".ico") || strings.HasSuffix(name, ".js") {
 			dataReader, err := getWebAsset(name)
 			if err != nil {
 				panic(err)
@@ -61,7 +61,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			varName := strcase.ToLowerCamel(varNamePrefix + strings.TrimSuffix(name, ".ico"))
+			varName := strcase.ToLowerCamel(varNamePrefix + strings.TrimSuffix(strings.TrimSuffix(name, ".ico"), ".js"))
 			line := fmt.Sprintf(
 				"const %s = \"%s\"\n", varName,
 				base64.StdEncoding.EncodeToString(data),

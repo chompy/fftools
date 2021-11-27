@@ -32,6 +32,18 @@ const httpPort = 31596
 
 func webListen() error {
 	http.HandleFunc("/favicon.ico", webServeFavicon)
+	http.HandleFunc("/header.js", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/javascript")
+		dataBytes, err := base64.StdEncoding.DecodeString(assetHeader)
+		if err != nil {
+			log.Printf("[WARN] %s", err.Error())
+			webHandleError(w)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write(dataBytes)
+	})
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		pathSplit := strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")
 		// home
