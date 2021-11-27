@@ -53,83 +53,84 @@ func actListenUDP() error {
 		}
 		remoteAddr = remote
 		// decode
-		messageType := buf[0]
-		switch messageType {
-		case DataTypeLogLine:
-			{
-				// decode raw log + dispatch event
-				logLine := LogLine{}
-				if err := logLine.FromBytes(buf[:]); err != nil {
-					break
-				}
-				// parsed log
-				parsedLogEvent, err := ParseLogEvent(logLine)
-				if err != nil {
-					logWarn(err.Error())
-					break
-				}
-				eventListenerDispatch("act:log_line", parsedLogEvent)
-				break
-			}
-		case DataTypeCombatant:
-			{
-				combatant := Combatant{}
-				if err := combatant.FromBytes(buf[:]); err != nil {
-					break
-				}
-				eventListenerDispatch("act:combatant", combatant)
-				break
-			}
-		case DataTypeEncounter:
-			{
-				encounter := Encounter{}
-				if err := encounter.FromBytes(buf[:]); err != nil {
-					break
-				}
-				eventListenerDispatch("act:encounter", encounter)
-				break
-			}
-		case dataTypeActScripts:
-			{
-				if err := actSendScripts(); err != nil {
-					logWarn(err.Error())
-				}
-				break
-			}
-		case dataTypeActScriptEnable, dataTypeActScriptDisable:
-			{
-				pos := 1
-				scriptName := readString(buf[:], &pos)
-				if messageType == dataTypeActScriptEnable {
-					logInfo("[ACT] Enable '%s' script.", scriptName)
-				} else {
-					logInfo("[ACT] Disable '%s' script.", scriptName)
-				}
-				if err := configSetScriptEnabled(scriptName, messageType == dataTypeActScriptEnable); err != nil {
-					logWarn(err.Error())
-					break
-				}
-				luaEnableScripts()
-				actSendScripts()
-				break
-			}
-		case dataTypeActScriptReload:
-			{
-				pos := 1
-				scriptName := readString(buf[:], &pos)
-				for _, script := range loadedScripts {
-					if script.ScriptName == scriptName {
-						logInfo("[ACT] Reload '%s' script.", scriptName)
-						if err := script.reload(); err != nil {
-							logLuaWarn(script.L, err.Error())
-						}
+		go func(buf [1024]byte) {
+			messageType := buf[0]
+			switch messageType {
+			case DataTypeLogLine:
+				{
+					// decode raw log + dispatch event
+					logLine := LogLine{}
+					if err := logLine.FromBytes(buf[:]); err != nil {
 						break
 					}
+					// parsed log
+					parsedLogEvent, err := ParseLogEvent(logLine)
+					if err != nil {
+						logWarn(err.Error())
+						break
+					}
+					eventListenerDispatch("act:log_line", parsedLogEvent)
+					break
 				}
-				break
+			case DataTypeCombatant:
+				{
+					combatant := Combatant{}
+					if err := combatant.FromBytes(buf[:]); err != nil {
+						break
+					}
+					eventListenerDispatch("act:combatant", combatant)
+					break
+				}
+			case DataTypeEncounter:
+				{
+					encounter := Encounter{}
+					if err := encounter.FromBytes(buf[:]); err != nil {
+						break
+					}
+					eventListenerDispatch("act:encounter", encounter)
+					break
+				}
+			case dataTypeActScripts:
+				{
+					if err := actSendScripts(); err != nil {
+						logWarn(err.Error())
+					}
+					break
+				}
+			case dataTypeActScriptEnable, dataTypeActScriptDisable:
+				{
+					pos := 1
+					scriptName := readString(buf[:], &pos)
+					if messageType == dataTypeActScriptEnable {
+						logInfo("[ACT] Enable '%s' script.", scriptName)
+					} else {
+						logInfo("[ACT] Disable '%s' script.", scriptName)
+					}
+					if err := configSetScriptEnabled(scriptName, messageType == dataTypeActScriptEnable); err != nil {
+						logWarn(err.Error())
+						break
+					}
+					luaEnableScripts()
+					actSendScripts()
+					break
+				}
+			case dataTypeActScriptReload:
+				{
+					pos := 1
+					scriptName := readString(buf[:], &pos)
+					for _, script := range loadedScripts {
+						if script.ScriptName == scriptName {
+							logInfo("[ACT] Reload '%s' script.", scriptName)
+							if err := script.reload(); err != nil {
+								logLuaWarn(script.L, err.Error())
+							}
+							break
+						}
+					}
+					break
+				}
 			}
-		}
-
+		}(buf)
 	}
 }
 
