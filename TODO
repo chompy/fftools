@@ -1,6 +1,5 @@
 - View logs from ACT plugin
 - Import scripts from Git
-- Script auto update
 - Script repository
 - Auto update more than just daemon exe
 - Reload scripts when config files are changed
