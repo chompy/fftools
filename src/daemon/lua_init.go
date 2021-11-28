@@ -26,7 +26,7 @@ import (
 	lua "github.com/yuin/gopher-lua"
 )
 
-var luaValidScriptNames = []string{"main.lua", "init.lua"}
+var luaValidScriptNames = []string{"main.lua", "init.lua", "base.lua"}
 var luaFuncs map[string]lua.LGFunction = nil
 var loadedScripts []*luaScript = make([]*luaScript, 0)
 

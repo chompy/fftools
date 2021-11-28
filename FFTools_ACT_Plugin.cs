@@ -50,9 +50,11 @@ namespace ACT_Plugin
         const byte DATA_TYPE_SCRIPT_ENABLE = 202;               // Data type, enable script
         const byte DATA_TYPE_SCRIPT_DISABLE = 203;              // Data type, disable script
         const byte DATA_TYPE_SCRIPT_RELOAD = 204;               // Data type, reload script
-        const byte DATA_TYPE_ACT_SAY = 205;                     // Data type, speak with TTS
-        const byte DATA_TYPE_ACT_END = 206;                     // Data type, flag to end encounter
-        const byte DATA_TYPE_ACT_UPDATE = 207;                  // Data type, flag that an update is ready
+        const byte DATA_TYPE_SCRIPT_VERSION = 205;              // Data type, request/recieve script version
+        const byte DATA_TYPE_SCRIPT_UPDATE = 206;               // Data type, request script update
+        const byte DATA_TYPE_ACT_SAY = 210;                     // Data type, speak with TTS
+        const byte DATA_TYPE_ACT_END = 211;                     // Data type, flag to end encounter
+        const byte DATA_TYPE_ACT_UPDATE = 212;                  // Data type, flag that an update is ready
 
         const long TTS_TIMEOUT = 500;                           // Time in miliseconds to timeout TTS
         
@@ -73,6 +75,7 @@ namespace ACT_Plugin
         private System.Windows.Forms.Button formScriptConfig;   // Form element button to open script config file in notepad
         private System.Windows.Forms.Button formScriptReload;   // Form element button to reload scripts
         private System.Windows.Forms.Button formWebOpen;        // Form element button to open web page for script
+        private System.Windows.Forms.Button formUpdate;         // Form element button to check for script update
         private System.Windows.Forms.Button formScriptDir;      // Form element button to open script directory
         private System.Windows.Forms.Button formAppConfig;      // Form element button to open app config file in notepad
 
@@ -103,7 +106,7 @@ namespace ACT_Plugin
             this.formScriptEnable = new System.Windows.Forms.Button();
             this.formScriptEnable.Name = "ScriptEnable";
             this.formScriptEnable.AutoSize = true;
-            this.formScriptEnable.Location = new System.Drawing.Point(252, this.formScriptInfo.Height + 16);
+            this.formScriptEnable.Location = new System.Drawing.Point(252, this.formScriptInfo.Height + 4);
             this.formScriptEnable.Size = new System.Drawing.Size(64, 24);
             this.formScriptEnable.Text = "Enable";
             this.formScriptEnable.Enabled = false;
@@ -112,7 +115,7 @@ namespace ACT_Plugin
             this.formScriptConfig = new System.Windows.Forms.Button();
             this.formScriptConfig.Name = "ScriptConfig";
             this.formScriptConfig.AutoSize = true;
-            this.formScriptConfig.Location = new System.Drawing.Point(318, this.formScriptInfo.Height + 16);
+            this.formScriptConfig.Location = new System.Drawing.Point(318, this.formScriptInfo.Height + 4);
             this.formScriptConfig.Size = new System.Drawing.Size(82, 24);
             this.formScriptConfig.Text = "Edit Config";
             this.formScriptConfig.Enabled = false;
@@ -121,16 +124,24 @@ namespace ACT_Plugin
             this.formWebOpen = new System.Windows.Forms.Button();
             this.formWebOpen.Name = "WebOpen";
             this.formWebOpen.AutoSize = true;
-            this.formWebOpen.Location = new System.Drawing.Point(402, this.formScriptInfo.Height + 16);
+            this.formWebOpen.Location = new System.Drawing.Point(402, this.formScriptInfo.Height + 4);
             this.formWebOpen.Size = new System.Drawing.Size(82, 24);
             this.formWebOpen.Text = "Open Web View";
             this.formWebOpen.Enabled = false;
             this.Controls.Add(this.formWebOpen);
 
+            this.formUpdate = new System.Windows.Forms.Button();
+            this.formUpdate.Name = "ScriptUpdate";
+            this.formUpdate.AutoSize = true;
+            this.formUpdate.Location = new System.Drawing.Point(252, this.formScriptInfo.Height + 30);
+            this.formUpdate.Size = new System.Drawing.Size(82, 24);
+            this.formUpdate.Text = "Check For Updates";
+            this.Controls.Add(this.formUpdate);
+
             this.formScriptReload = new System.Windows.Forms.Button();
             this.formScriptReload.Name = "ScriptReload";
             this.formScriptReload.AutoSize = true;
-            this.formScriptReload.Location = new System.Drawing.Point(252, this.formScriptInfo.Height + 48);
+            this.formScriptReload.Location = new System.Drawing.Point(252, this.formScriptInfo.Height + 64);
             this.formScriptReload.Size = new System.Drawing.Size(82, 24);
             this.formScriptReload.Text = "Refresh List";
             this.formScriptReload.Enabled = true;
@@ -139,7 +150,7 @@ namespace ACT_Plugin
             this.formScriptDir = new System.Windows.Forms.Button();
             this.formScriptDir.Name = "ScriptDir";
             this.formScriptDir.AutoSize = true;
-            this.formScriptDir.Location = new System.Drawing.Point(336, this.formScriptInfo.Height + 48);
+            this.formScriptDir.Location = new System.Drawing.Point(336, this.formScriptInfo.Height + 64);
             this.formScriptDir.Size = new System.Drawing.Size(114, 24);
             this.formScriptDir.Text = "Open Script Directory";
             this.Controls.Add(this.formScriptDir);
@@ -147,7 +158,7 @@ namespace ACT_Plugin
             this.formAppConfig = new System.Windows.Forms.Button();
             this.formAppConfig.Name = "AppConfig";
             this.formAppConfig.AutoSize = true;
-            this.formAppConfig.Location = new System.Drawing.Point(252, this.formScriptInfo.Height + 82);
+            this.formAppConfig.Location = new System.Drawing.Point(252, this.formScriptInfo.Height + 90);
             this.formAppConfig.Size = new System.Drawing.Size(142, 24);
             this.formAppConfig.Text = "Edit Main Plugin Config";
             this.Controls.Add(this.formAppConfig);
@@ -187,6 +198,7 @@ namespace ACT_Plugin
             this.formWebOpen.Click += ScriptWeb_Click;
             this.formScriptDir.Click += ScriptDir_Click;
             this.formAppConfig.Click += AppConfig_Click;
+            this.formUpdate.Click += ScriptUpdate_Click;
             // /
 			pluginScreenSpace.Controls.Add(this);	// Add this UserControl to the tab ACT provides
             // set tab title
@@ -211,6 +223,7 @@ namespace ACT_Plugin
             this.formWebOpen.Click -= ScriptWeb_Click;
             this.formScriptDir.Click -= ScriptDir_Click;
             this.formAppConfig.Click -= AppConfig_Click;
+            this.formUpdate.Click -= ScriptUpdate_Click;
             // close udp client
             this.udpClient.Close();
             if (this.listenThread != null) {
@@ -258,10 +271,10 @@ namespace ACT_Plugin
             int index = this.formScriptList.FindString(value);
             string titleSep = new String('-', 64);
             string desc = this.scriptData[index][3];
-            if (this.scriptData[index][5] != "") {
-                desc = "ERROR:\r\n" + this.scriptData[index][5];
+            if (this.scriptData[index][6] != "") {
+                desc = "ERROR:\r\n" + this.scriptData[index][6];
             }
-            this.formScriptInfo.Text = this.scriptData[index][2] + "\r\n" +
+            this.formScriptInfo.Text = this.scriptData[index][2] + " (v" + this.scriptData[index][4] + ")\r\n" +
                 titleSep + "\r\n" + desc;  
             this.formScriptEnable.Enabled = true;
             this.formScriptEnable.Text = "Disable";
@@ -312,7 +325,7 @@ namespace ACT_Plugin
         {
             string value = this.formScriptList.SelectedItem.ToString();
             int index = this.formScriptList.FindString(value);
-            string url = this.scriptData[index][4];
+            string url = this.scriptData[index][5];
             Process.Start(url);
         }
 
@@ -320,6 +333,14 @@ namespace ACT_Plugin
         {
             string path = getPluginDirectory() + "\\scripts";
             Process.Start(path);
+        }
+
+        void ScriptUpdate_Click(object sender, System.EventArgs e)
+        {
+            string value = this.formScriptList.SelectedItem.ToString();
+            int index = this.formScriptList.FindString(value);
+            string name = this.scriptData[index][0];
+            sendScriptCheckVersion(name);
         }
 
         void AppConfig_Click(object sender, System.EventArgs e)
@@ -403,9 +424,41 @@ namespace ACT_Plugin
                             }
                             break;
                         }
-                        case DATA_TYPE_ACT_UPDATE:
-                        {
+                        case DATA_TYPE_ACT_UPDATE: {
                             DialogResult result = MessageBox.Show("An updated version of the FFTools plugin is ready. Please restart ACT for the changes to take effect.", "New Version", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+                            break;
+                        }
+                        case DATA_TYPE_SCRIPT_VERSION: {
+                            string valStr = System.Text.Encoding.UTF8.GetString(bytes, 1, bytes.Length-1);                           
+                            var valSplit = valStr.Split('|');
+                            var name = valSplit[0];
+                            var currentVersion = valSplit[1];
+                            var latestVersion = valSplit[2];
+                            if (currentVersion != latestVersion) {
+                                DialogResult result = MessageBox.Show("An update is available. Update now? (v" + currentVersion + " => v" + latestVersion + ")", "Script Version Check", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                                if (result == DialogResult.Yes) {
+                                    sendScriptUpdateVersion(name);
+                                }
+                                break;
+                            }
+                            MessageBox.Show("You have the latest version. (v" + latestVersion + ")", "Script Version Check", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            break;
+                        }
+                        case DATA_TYPE_SCRIPT_UPDATE: {
+                            string valStr = System.Text.Encoding.UTF8.GetString(bytes, 1, bytes.Length-1);                           
+                            var valSplit = valStr.Split('|');
+                            var name = valSplit[0];
+                            var status = valSplit[1];
+                            switch (status) {
+                                case "success": {
+                                    MessageBox.Show("Update complete.", "Script Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                    break;
+                                }
+                                default: {
+                                    MessageBox.Show("An error occured during script update.\n\n" + valSplit[2], "Script Update", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                                    break;
+                                }
+                            }
                             break;
                         }
                     }
@@ -579,6 +632,22 @@ namespace ACT_Plugin
         {
             List<Byte> sendData = new List<Byte>();
             sendData.Add(DATA_TYPE_SCRIPT_RELOAD);
+            prepareString(ref sendData, name);
+            sendUdp(ref sendData);
+        }
+
+        void sendScriptCheckVersion(string name)
+        {
+            List<Byte> sendData = new List<Byte>();
+            sendData.Add(DATA_TYPE_SCRIPT_VERSION);
+            prepareString(ref sendData, name);
+            sendUdp(ref sendData);
+        }
+
+       void sendScriptUpdateVersion(string name)
+        {
+            List<Byte> sendData = new List<Byte>();
+            sendData.Add(DATA_TYPE_SCRIPT_UPDATE);
             prepareString(ref sendData, name);
             sendUdp(ref sendData);
         }

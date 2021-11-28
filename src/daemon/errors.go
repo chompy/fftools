@@ -32,4 +32,6 @@ var (
 	ErrLogParseTooFewCharacters    = errors.New("tried to parse log line with too few characters")
 	ErrLogParseAbilityTooFewFields = errors.New("not enough fields when parsing ability")
 	ErrProxyResponseTooLarge       = errors.New("response is too large")
+	ErrNoGit                       = errors.New("no git repository found")
+	ErrGitNoRemote                 = errors.New("cannot update git repository without remote")
 )

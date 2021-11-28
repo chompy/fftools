@@ -26,9 +26,11 @@ const dataTypeActScripts = 201
 const dataTypeActScriptEnable = 202
 const dataTypeActScriptDisable = 203
 const dataTypeActScriptReload = 204
-const dataTypeActSay = 205
-const dataTypeActEnd = 206
-const dataTypeActUpdated = 207
+const dataTypeActScriptVersion = 205
+const dataTypeActScriptUpdate = 206
+const dataTypeActSay = 210
+const dataTypeActEnd = 211
+const dataTypeActUpdated = 212
 
 var actConn *net.UDPConn = nil
 var remoteAddr *net.UDPAddr = nil
@@ -129,6 +131,24 @@ func actListenUDP() error {
 					}
 					break
 				}
+			case dataTypeActScriptVersion:
+				{
+					pos := 1
+					scriptName := readString(buf[:], &pos)
+					if err := actScriptVersion(scriptName); err != nil {
+						logWarn("[ACT] %s", err.Error())
+					}
+					break
+				}
+			case dataTypeActScriptUpdate:
+				{
+					pos := 1
+					scriptName := readString(buf[:], &pos)
+					if err := actScriptUpdate(scriptName); err != nil {
+						logWarn("[ACT] %s", err.Error())
+					}
+					break
+				}
 			}
 		}(buf)
 	}
@@ -162,7 +182,12 @@ func actSendScripts() error {
 		if script.LastError != nil {
 			lastErrMsg = script.LastError.Error()
 		}
-		data := script.ScriptName + "|" + enabledString + "|" + script.Name + "|" + script.Desc + "|" + webUrl + script.ScriptName + "|" + lastErrMsg
+		ver, _ := script.getCurrentVersion()
+		verStr := "?"
+		if ver != nil {
+			verStr = ver.String()
+		}
+		data := script.ScriptName + "|" + enabledString + "|" + script.Name + "|" + script.Desc + "|" + verStr + "|" + webUrl + script.ScriptName + "|" + lastErrMsg
 		err := actRawSend(append(
 			[]byte{byte(dataTypeActScripts)},
 			[]byte(data)...,
@@ -203,4 +228,58 @@ func actError(err error, scriptName string) error {
 func actRequestUpdate() error {
 	logInfo("[ACT] Request version update.")
 	return actRawSend([]byte{byte(dataTypeActUpdated)})
+}
+
+func actScriptVersion(scriptName string) error {
+	for _, script := range loadedScripts {
+		if script.ScriptName == scriptName {
+			logInfo("[ACT] Check '%s' script version.", scriptName)
+			curVer, _ := script.getCurrentVersion()
+			curVerStr := "?"
+			if curVer != nil {
+				curVerStr = curVer.String()
+			}
+			latestVer, _ := script.getLatestVersion()
+			latestVerStr := "?"
+			if latestVer != nil {
+				latestVerStr = latestVer.String()
+			}
+			data := script.ScriptName + "|" + curVerStr + "|" + latestVerStr
+			return actRawSend(append(
+				[]byte{byte(dataTypeActScriptVersion)},
+				[]byte(data)...,
+			))
+		}
+	}
+	return ErrLuaScriptNotFound
+}
+
+func actScriptUpdate(scriptName string) error {
+	for _, script := range loadedScripts {
+		if script.ScriptName == scriptName {
+			logInfo("[ACT] Update '%s' script to latest version.", scriptName)
+			if err := script.update(); err != nil {
+				data := script.ScriptName + "|fail|" + err.Error()
+				actRawSend(append(
+					[]byte{byte(dataTypeActScriptUpdate)},
+					[]byte(data)...,
+				))
+				return err
+			}
+			if err := script.reload(); err != nil {
+				data := script.ScriptName + "|fail|" + err.Error()
+				actRawSend(append(
+					[]byte{byte(dataTypeActScriptUpdate)},
+					[]byte(data)...,
+				))
+				return err
+			}
+			data := script.ScriptName + "|success"
+			return actRawSend(append(
+				[]byte{byte(dataTypeActScriptUpdate)},
+				[]byte(data)...,
+			))
+		}
+	}
+	return ErrLuaScriptNotFound
 }

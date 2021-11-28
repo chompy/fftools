@@ -6,3 +6,7 @@
 /data/*
 !/data/.placeholder
 src/*/web_data.go
+/scripts/*
+!/scripts/.placeholder
+/bin/*
+!/bin/.placeholder
