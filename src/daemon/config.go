@@ -179,9 +179,9 @@ func configAppDefault() *configApp {
 		EnableProxy:    true,
 		EnableKeyPress: true,
 		EnableTTS:      true,
-		ProxyAddress:   "proxy.fftools.net:31595",
+		ProxyAddress:   "fftools.net:31595",
 		//ProxyAddress: "localhost:31595",
-		ProxyURL: "https://proxy.fftools.net/",
+		ProxyURL: "https://fftools.net/",
 		//ProxyURL: "http://localhost:31596/",
 	}
 }

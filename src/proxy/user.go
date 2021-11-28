@@ -64,14 +64,18 @@ func addProxyUser(uid string, secret string, conn net.Conn) *ProxyUser {
 	u.connection = conn
 	u.requests = make([]userRequest, 0)
 	u.lastRequestTime = time.Now()
-	go func(index int) {
+	go func(u *ProxyUser) {
 		msgTypeBuf := make([]byte, 1)
 		for {
-			u := proxyUsers[index]
 			// check that connection is set
 			if u.connection == nil {
 				log.Printf("[WARN] Nil connection found.")
-				proxyUsers = append(proxyUsers[index:], proxyUsers[:index+1]...)
+				for i := range proxyUsers {
+					if proxyUsers[i].Uid == u.Uid {
+						proxyUsers = append(proxyUsers[i:], proxyUsers[:i+1]...)
+						break
+					}
+				}
 				return
 			}
 			// check response
@@ -96,11 +100,16 @@ func addProxyUser(uid string, secret string, conn net.Conn) *ProxyUser {
 			if time.Since(u.lastRequestTime) > time.Second*proxyUserTTL {
 				log.Printf("[INFO] Clean up %s (%s).", u.connection.RemoteAddr().String(), u.Uid)
 				u.connection.Close()
-				proxyUsers = append(proxyUsers[index:], proxyUsers[:index+1]...)
+				for i := range proxyUsers {
+					if proxyUsers[i].Uid == u.Uid {
+						proxyUsers = append(proxyUsers[i:], proxyUsers[:i+1]...)
+						break
+					}
+				}
 				return
 			}
 		}
-	}(len(proxyUsers) - 1)
+	}(u)
 	return u
 }
 
