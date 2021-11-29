@@ -38,7 +38,7 @@ namespace ACT_Plugin
     public class FFTools : UserControl, IActPluginV1
     {
 
-        const int VERSION_NUMBER = 5;
+        const int VERSION_NUMBER = 6;
 
         const UInt16 DAEMON_PORT = 31593;                       // Port to send to daemon on.
         
@@ -192,6 +192,7 @@ namespace ACT_Plugin
             ActGlobals.oFormActMain.AfterCombatAction += new CombatActionDelegate(oFormActMain_AfterCombatAction);
             ActGlobals.oFormActMain.OnLogLineRead += new LogLineEventDelegate(oFormActMain_OnLogLineRead);
             this.formScriptList.SelectedIndexChanged += ScriptList_SelectedIndexChanged;
+            this.formScriptList.DoubleClick  += ScriptList_DoubleClick;
             this.formScriptEnable.Click += ScriptEnable_Click;
             this.formScriptReload.Click += ScriptReload_Click;
             this.formScriptConfig.Click += ScriptConfig_Click;
@@ -287,6 +288,11 @@ namespace ACT_Plugin
                 this.formScriptConfig.Enabled = true;
             }
             this.formWebOpen.Enabled = true;
+        }
+
+        void ScriptList_DoubleClick(object sender, System.EventArgs e)
+        {
+            this.ScriptEnable_Click(sender, e);
         }
 
         void ScriptEnable_Click(object sender, System.EventArgs e)
