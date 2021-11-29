@@ -7,7 +7,7 @@ Extends Final Fantasy XIV log parsing in Advanced Combat Tracker (ACT) with Lua 
 
 ## Installation
 
-1. Download the plugin here. Extract the ZIP. Open ACT and navigate to the plugins tab.
+1. Download the plugin [here](https://github.com/chompy/fftools/releases/latest). Extract the ZIP. Open ACT and navigate to the plugins tab.
 2. Click 'Browse...' and locate the 'FFTools_ACT_Plugin.cs' file.
 3. Click 'Add/Enable Plugin.'
 4. Click on the 'FFTools' tab. A list of available scripts will be on the left side. Click on a script name and then click the 'Enable' button to enable the script.
