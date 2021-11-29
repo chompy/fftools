@@ -31,7 +31,7 @@ using Advanced_Combat_Tracker;
 [assembly: AssemblyTitle("FFTools")]
 [assembly: AssemblyDescription("Extends FFXIV parsing with Lua scripts that support TTS callouts, web UI, and more.")]
 [assembly: AssemblyCompany("Chompy#3436")]
-[assembly: AssemblyVersion("0.05")]
+[assembly: AssemblyVersion("0.06")]
 
 namespace ACT_Plugin
 {
