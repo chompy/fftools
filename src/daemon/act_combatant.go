@@ -17,10 +17,15 @@ along with FFTools.  If not, see <https://www.gnu.org/licenses/>.
 
 package main
 
+import "sync"
+
+var combatantLock = sync.Mutex{}
 var currentCombatants = make([]Combatant, 0)
 var combatantNameLookup = make(map[int]string)
 
 func listenCombatant(event *eventDispatch) {
+	combatantLock.Lock()
+	defer combatantLock.Unlock()
 	combatant := event.Data.(Combatant)
 	if combatant.ID > 999999999 ||
 		combatant.Job == "" ||
@@ -41,6 +46,8 @@ func listenCombatant(event *eventDispatch) {
 }
 
 func listenCombatantLog(event *eventDispatch) {
+	combatantLock.Lock()
+	defer combatantLock.Unlock()
 	log := event.Data.(ParsedLogEvent)
 	if log.Type != LogTypeNetworkAbility || log.Values["source_name"].(string) == "" {
 		return
@@ -51,6 +58,8 @@ func listenCombatantLog(event *eventDispatch) {
 }
 
 func listenEncounterChangeResetCombatants(event *eventDispatch) {
+	combatantLock.Lock()
+	defer combatantLock.Unlock()
 	currentCombatants = make([]Combatant, 0)
 	combatantNameLookup = make(map[int]string)
 }
