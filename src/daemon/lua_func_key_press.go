@@ -133,12 +133,12 @@ func processKeyPressQueue() {
 				}
 			}
 			kb.Press()
-			time.Sleep(time.Millisecond * 15)
+			time.Sleep(time.Millisecond * 50)
 			kb.Release()
 			keyPressQueue = append(keyPressQueue[:i], keyPressQueue[i+1:]...)
 			break
 		}
-		time.Sleep(time.Millisecond * 250)
+		time.Sleep(time.Millisecond * 300)
 	}
 }
 
