@@ -25,12 +25,17 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const httpPort = 31596
 
 func webListen() error {
+	http.Handle("/_stats", promhttp.Handler())
 	http.HandleFunc("/favicon.ico", webServeFavicon)
 	http.HandleFunc("/header.js", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/javascript")
@@ -44,19 +49,24 @@ func webListen() error {
 		w.Write(dataBytes)
 	})
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		timer := prometheus.NewTimer(httpDuration.WithLabelValues(r.URL.Path))
+		totalRequests.WithLabelValues(r.URL.Path).Inc()
 		pathSplit := strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")
 		// home
 		if len(pathSplit) == 1 && pathSplit[0] == "" {
 			webServeB64(assetIndex, http.StatusOK, w)
+			timer.ObserveDuration()
 			return
 		}
 		// locate proxy user and serve proxy
 		proxyUser := getProxyUser(pathSplit[0])
 		if proxyUser == nil {
 			webServeB64(assetError404UserNotFound, http.StatusNotFound, w)
+			timer.ObserveDuration()
 			return
 		}
 		webServeProxy(proxyUser, w, r)
+		timer.ObserveDuration()
 	})
 	return http.ListenAndServe(fmt.Sprintf(":%d", httpPort), nil)
 }
@@ -96,7 +106,6 @@ func webServeProxy(u *ProxyUser, w http.ResponseWriter, r *http.Request) {
 		webServeB64(assetError500General, http.StatusInternalServerError, w)
 		return
 	}
-
 }
 
 func webServeB64(data string, status int, w http.ResponseWriter) {
@@ -109,6 +118,7 @@ func webServeB64(data string, status int, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
 	w.Write(dataBytes)
+	responseStatus.WithLabelValues(strconv.Itoa(status)).Inc()
 }
 
 func webServeFavicon(w http.ResponseWriter, r *http.Request) {
