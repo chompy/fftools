@@ -31,7 +31,7 @@ func luaFuncWait(L *lua.LState) int {
 		return 0
 	}
 	ls := L.GetGlobal(luaGlobalScriptData).(*lua.LUserData).Value.(*luaScript)
-	go func(L *lua.LState, prevStateId int64) {
+	go func(L *lua.LState, callback *lua.LFunction, prevStateId int64) {
 		time.Sleep(time.Millisecond * time.Duration(waitTime))
 		ls := L.GetGlobal(luaGlobalScriptData).(*lua.LUserData).Value.(*luaScript)
 		if ls.StateID != prevStateId {
@@ -42,7 +42,7 @@ func luaFuncWait(L *lua.LState) int {
 		if err := L.PCall(0, 0, nil); err != nil {
 			logLuaWarn(L, err.Error())
 		}
-	}(L, ls.StateID)
+	}(L, callback, ls.StateID)
 	return 0
 }
 

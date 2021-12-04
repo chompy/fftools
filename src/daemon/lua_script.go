@@ -155,6 +155,8 @@ func (ls *luaScript) activate() error {
 	ls.Lock.Lock()
 	defer ls.Lock.Unlock()
 	logLuaInfo(ls.L, "Activate.")
+	ls.State = LuaScriptActive // activate first so state is active during init call
+	ls.StateID = time.Now().UnixMicro()
 	initFunc := ls.L.GetGlobal("init")
 	ls.L.SetTop(0)
 	ls.L.Push(initFunc)
@@ -167,8 +169,6 @@ func (ls *luaScript) activate() error {
 		actError(err, ls.ScriptName)
 		return err
 	}
-	ls.State = LuaScriptActive
-	ls.StateID = time.Now().UnixMicro()
 	return nil
 }
 
