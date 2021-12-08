@@ -17,7 +17,9 @@ along with FFTools.  If not, see <https://www.gnu.org/licenses/>.
 
 package main
 
-import "sync"
+import (
+	"sync"
+)
 
 var combatantLock = sync.Mutex{}
 var currentCombatants = make([]Combatant, 0)

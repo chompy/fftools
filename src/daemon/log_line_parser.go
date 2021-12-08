@@ -237,8 +237,9 @@ func ParseLogEvent(logLine LogLine) (ParsedLogEvent, error) {
 	if len(logLineString) <= 17 {
 		return ParsedLogEvent{}, ErrLogParseTooFewCharacters
 	}
+	logLineString = strings.Join(strings.Split(strings.TrimSpace(logLineString), " ")[2:], " ")
 	// get field type
-	logLineType, err := hexToInt(logLineString[15:17])
+	logLineType, err := hexToInt(logLineString[0:2])
 	if err != nil {
 		return ParsedLogEvent{}, err
 	}
@@ -246,7 +247,7 @@ func ParseLogEvent(logLine LogLine) (ParsedLogEvent, error) {
 	// probably........... examples... Kaeshi: Higanbana, Hissatsu: Guren
 	logLineString = strings.Replace(logLineString, ": ", "####", -1)
 	// split fields
-	fields := strings.Split(logLineString[15:], ":")
+	fields := strings.Split(logLineString, ":")
 	// create data object
 	out := ParsedLogEvent{
 		Type:   int(logLineType),
@@ -452,7 +453,7 @@ func ParseLogEvent(logLine LogLine) (ParsedLogEvent, error) {
 						}
 					}
 				}
-				logDebug("[LOG LINE] 0x"+logLineString[15:17]+": ", out)
+				logDebug("[LOG LINE] 0x"+logLineString[0:2]+": ", out)
 			}
 
 			break

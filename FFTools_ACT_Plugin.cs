@@ -520,7 +520,7 @@ namespace ACT_Plugin
 
         void sendCombatData(CombatActionEventArgs actionInfo)
         {
-            if (actionInfo.cancelAction) {
+            if (actionInfo.cancelAction || !actionInfo.tags.ContainsKey("SourceId")) {
                 return;
             }
             // get encounter
@@ -532,7 +532,7 @@ namespace ACT_Plugin
                 if (cd.Name == actionInfo.attacker) {
                     // get actor id (stored as tag in actionInfo)
                     Int32 actorId = int.Parse(
-                        (string) actionInfo.tags["ActorID"],
+                        (string) actionInfo.tags["SourceId"],
                         System.Globalization.NumberStyles.HexNumber
                     );
                     // send combatant data with actor id
