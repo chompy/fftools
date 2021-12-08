@@ -31,14 +31,14 @@ using Advanced_Combat_Tracker;
 [assembly: AssemblyTitle("FFTools")]
 [assembly: AssemblyDescription("Extends FFXIV parsing with Lua scripts that support TTS callouts, web UI, and more.")]
 [assembly: AssemblyCompany("Chompy#3436")]
-[assembly: AssemblyVersion("0.08")]
+[assembly: AssemblyVersion("0.09")]
 
 namespace ACT_Plugin
 {
     public class FFTools : UserControl, IActPluginV1
     {
 
-        const int VERSION_NUMBER = 8;
+        const int VERSION_NUMBER = 9;
 
         const UInt16 DAEMON_PORT = 31593;                       // Port to send to daemon on.
         
