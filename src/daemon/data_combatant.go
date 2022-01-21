@@ -105,6 +105,7 @@ func (c Combatant) ToLua() *lua.LTable {
 	t.RawSetString("kills", lua.LNumber(c.Kills))
 	t.RawSetString("critical_hits", lua.LNumber(c.CritHits))
 	t.RawSetString("critical_heals", lua.LNumber(c.CritHeals))
+	t.RawSetString("role", lua.LString(jobGetRole(c.Job)))
 	t.RawSetString("__goobject", &lua.LUserData{Value: c})
 	return t
 }

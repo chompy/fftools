@@ -188,31 +188,31 @@ var logShiftValues = [...]int{0x3E, 0x113, 0x213, 0x313}
 // logRegexes is a map of regular expressions used to parse log events.
 var logRegexes = map[int]*parseInstructions{
 	LogTypeZoneChange: &parseInstructions{
-		regexp.MustCompile(` 01:Changed Zone to (.*)\.`),
-		[]string{"zone|str"},
+		regexp.MustCompile(`01:([A-F0-9]*):(.*)`),
+		[]string{"zone_id|hex", "zone|str"},
 	},
 	LogTypeChangePrimaryPlayer: &parseInstructions{
-		regexp.MustCompile(` 02:Changed primary player to (.*)\.`),
-		[]string{"target_name|str"},
+		regexp.MustCompile(`02:([A-F0-9]*):([a-zA-Z0-9'\- ]*)`),
+		[]string{"target_id|hex", "target_name|str"},
 	},
 	LogTypeNetworkDeath: &parseInstructions{
-		regexp.MustCompile(` 19:([a-zA-Z0-9'\- ]*) was defeated by ([a-zA-Z0-9'\- ]*)`),
+		regexp.MustCompile(`19:([a-zA-Z0-9'\- ]*) was defeated by ([a-zA-Z0-9'\- ]*)`),
 		[]string{"target_name|str", "source_name|str"},
 	},
 	LogTypeRemoveCombatant: &parseInstructions{
-		regexp.MustCompile(` 04:([A-F0-9]*):Removing combatant ([a-zA-Z0-9'\- ]*)\.  Max HP####([0-9]*)\.`),
+		regexp.MustCompile(`04:([A-F0-9]*):Removing combatant ([a-zA-Z0-9'\- ]*)\.  Max HP####([0-9]*)\.`),
 		[]string{"target_id|hex", "target_name|str", "target_max_hp|hex"},
 	},
 	LogTypeNetworkTargetIcon: &parseInstructions{
-		regexp.MustCompile(` 1B:([A-F0-9]*):([a-zA-Z0-9'\- ]*):....:....:([A-F0-9]*):`),
+		regexp.MustCompile(`1B:([A-F0-9]*):([a-zA-Z0-9'\- ]*):....:....:([A-F0-9]*):`),
 		[]string{"target_id|hex", "target_name|str", "icon_id|hex"},
 	},
 	LogTypeNetworkBuff: &parseInstructions{
-		regexp.MustCompile(` 1A:([A-F0-9]*):([a-zA-Z0-9'\- ]*) gains the effect of (.*) from (.*) for (.*) Seconds`),
-		[]string{"target_id|hex", "target_name|str", "effect_name|str", "effect_duration|float"},
+		regexp.MustCompile(`1A:([A-F0-9]*):(.*):([0-9\.*]):([A-F0-9]*):([a-zA-Z0-9'\- ]*):([A-F0-9]*):([a-zA-Z0-9'\- ]*):`),
+		[]string{"effect_id|hex", "effect_name|str", "effect_duration|float", "target_id|hex", "target_name|str", "source_id|hex", "source_name|str"},
 	},
 	LogTypeNetworkUpdateHP: &parseInstructions{
-		regexp.MustCompile(` 27:([A-F0-9]*):([a-zA-Z0-9'\- ]*):([0-9]*):([0-9]*):([0-9]*):([0-9]*):.*:.*:([\-\.0-9]*):([\-\.0-9]*):([\-\.0-9]*):([\-\.0-9]*)`),
+		regexp.MustCompile(`27:([A-F0-9]*):([a-zA-Z0-9'\- ]*):([0-9]*):([0-9]*):([0-9]*):([0-9]*):.*:.*:([\-\.0-9]*):([\-\.0-9]*):([\-\.0-9]*):([\-\.0-9]*)`),
 		[]string{"target_id|hex", "target_name|str", "target_hp|int", "target_max_hp|int", "target_mp|int", "target_max_mp|int", "target_x|float", "target_y|float", "target_z|float", "target_heading|float"},
 	},
 }

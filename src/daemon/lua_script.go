@@ -19,8 +19,11 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -89,6 +92,8 @@ func (ls *luaScript) load() error {
 	}
 	// init lua
 	ls.L = lua.NewState()
+	packagePath := strings.ReplaceAll(filepath.Dir(ls.Path), "\\", "/")
+	ls.L.DoString(fmt.Sprintf("package.path = \"%s\" .. [[/?.lua]]", packagePath))
 	// set global script name var
 	ls.L.SetGlobal(luaGlobalScriptName, lua.LString(ls.ScriptName))
 	ls.L.SetGlobal(luaGlobalScriptData, &lua.LUserData{Value: ls})
