@@ -7,7 +7,7 @@
 # this will make all your web views available at https://proxy.fftools.net/[your id]/[script name]/
 # without this you can still use web views but they will be accessible 
 # at http://localhost:31594/[script_name]/
-enable_proxy: true
+enable_proxy: false
 
 # enable scripts to execute keyboard button presses, this is used for uwu titan jail
 # auto markers, but could be used by any script to execute keyboard button presses

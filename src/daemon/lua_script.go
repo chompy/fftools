@@ -217,7 +217,7 @@ func (ls *luaScript) Web(r *http.Request) (interface{}, error) {
 	luaRequest.RawSetString("path", lua.LString(r.URL.Path))
 	queryTable := &lua.LTable{}
 	for k, v := range r.URL.Query() {
-		queryTable.RawSetString(k, valueGoToLua(v))
+		queryTable.RawSetString(k, lua.LString(v[0]))
 	}
 	luaRequest.RawSetString("query", queryTable)
 	luaFunc := ls.L.GetGlobal("web")

@@ -75,4 +75,13 @@ func eventListenerDispatch(event string, data interface{}) {
 			listener.Callback(ed)
 		}
 	}
+	// send web event
+	go func() {
+		webEd := &eventDispatch{
+			Event:    event,
+			Data:     data,
+			Listener: nil,
+		}
+		webEventChan <- webEd
+	}()
 }

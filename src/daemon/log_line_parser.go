@@ -196,8 +196,8 @@ var logRegexes = map[int]*parseInstructions{
 		[]string{"target_id|hex", "target_name|str"},
 	},
 	LogTypeNetworkDeath: &parseInstructions{
-		regexp.MustCompile(`19:([a-zA-Z0-9'\- ]*) was defeated by ([a-zA-Z0-9'\- ]*)`),
-		[]string{"target_name|str", "source_name|str"},
+		regexp.MustCompile(`19:([A-F0-9]*):([a-zA-Z0-9'\- ]*):([A-F0-9]*):([a-zA-Z0-9'\- ]*)`),
+		[]string{"target_id|hex", "target_name|str", "source_id|hex", "source_name|str"},
 	},
 	LogTypeRemoveCombatant: &parseInstructions{
 		regexp.MustCompile(`04:([A-F0-9]*):Removing combatant ([a-zA-Z0-9'\- ]*)\.  Max HP####([0-9]*)\.`),
@@ -208,8 +208,12 @@ var logRegexes = map[int]*parseInstructions{
 		[]string{"target_id|hex", "target_name|str", "icon_id|hex"},
 	},
 	LogTypeNetworkBuff: &parseInstructions{
-		regexp.MustCompile(`1A:([A-F0-9]*):(.*):([0-9\.*]):([A-F0-9]*):([a-zA-Z0-9'\- ]*):([A-F0-9]*):([a-zA-Z0-9'\- ]*):`),
-		[]string{"effect_id|hex", "effect_name|str", "effect_duration|float", "target_id|hex", "target_name|str", "source_id|hex", "source_name|str"},
+		regexp.MustCompile(`1A:([A-F0-9]*):(.*):([0-9\.]*):([A-F0-9]*):([a-zA-Z0-9'\- ]*):([A-F0-9]*):([a-zA-Z0-9'\- ]*):`),
+		[]string{"effect_id|hex", "effect_name|str", "effect_duration|float", "source_id|hex", "source_name|str", "target_id|hex", "target_name|str"},
+	},
+	LogTypeNetworkBuffRemove: &parseInstructions{
+		regexp.MustCompile(`1E:([A-F0-9]*):(.*):([0-9\.]*):([A-F0-9]*):([a-zA-Z0-9'\- ]*):([A-F0-9]*):([a-zA-Z0-9'\- ]*):`),
+		[]string{"effect_id|hex", "effect_name|str", "effect_duration|float", "source_id|hex", "source_name|str", "target_id|hex", "target_name|str"},
 	},
 	LogTypeNetworkUpdateHP: &parseInstructions{
 		regexp.MustCompile(`27:([A-F0-9]*):([a-zA-Z0-9'\- ]*):([0-9]*):([0-9]*):([0-9]*):([0-9]*):.*:.*:([\-\.0-9]*):([\-\.0-9]*):([\-\.0-9]*):([\-\.0-9]*)`),
@@ -225,10 +229,10 @@ type parseInstructions struct {
 
 // ParsedLogEvent defines a log event that has been parsed.
 type ParsedLogEvent struct {
-	Type   int
-	Raw    string
-	Time   time.Time
-	Values map[string]interface{}
+	Type   int                    `json:"type"`
+	Raw    string                 `json:"raw"`
+	Time   time.Time              `json:"time"`
+	Values map[string]interface{} `json:"value"`
 }
 
 // ParseLogEvent parses a log event and returns results as a ParsedLogEvent.
@@ -281,8 +285,8 @@ func ParseLogEvent(logLine LogLine) (ParsedLogEvent, error) {
 			damageFieldLength := len(fields[LogFieldDamage])
 			damage := 0
 			if damageFieldLength >= 4 {
-				// Get the left four bytes as damage.
-				damage, err = hexToInt(fields[LogFieldDamage][0:4])
+				// get field length minus four bytes and use that as damage
+				damage, err = hexToInt(fields[LogFieldDamage][0 : damageFieldLength-4])
 				if err != nil {
 					return out, err
 				}
@@ -371,7 +375,7 @@ func ParseLogEvent(logLine LogLine) (ParsedLogEvent, error) {
 					case "4":
 						{
 							out.Values["flag_heal"] = true
-							if len(rawFlags) >= 6 && rawFlags[len(rawFlags)-6:len(rawFlags)-5] == "1" {
+							if len(rawFlags) >= 6 && rawFlags[len(rawFlags)-6:len(rawFlags)-5] != "0" {
 								out.Values["flag_critical_hit"] = true
 							}
 							break

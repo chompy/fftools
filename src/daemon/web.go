@@ -27,6 +27,8 @@ import (
 	"strings"
 )
 
+var webEventChan chan *eventDispatch
+
 func initWeb() {
 	http.HandleFunc("/favicon.ico", webServeFavicon)
 	http.HandleFunc("/header.js", func(w http.ResponseWriter, r *http.Request) {
@@ -75,6 +77,9 @@ func webHandle(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		webServeLua(luaScript, w, r)
+		return
+	} else if len(pathSplit) > 1 && pathSplit[1] == "_events" {
+		webServeEvents(w, r)
 		return
 	}
 	// serve up static file
@@ -135,6 +140,30 @@ func webServeLua(ls *luaScript, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(resJson)
+}
+
+func webServeEvents(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	webEventChan = make(chan *eventDispatch)
+	defer func() {
+		close(webEventChan)
+		webEventChan = nil
+	}()
+	flusher, _ := w.(http.Flusher)
+	for {
+		select {
+		case event := <-webEventChan:
+			fmt.Fprintf(w, "event: %s\n", event.Event)
+			eventData, _ := json.Marshal(event.Data)
+			fmt.Fprintf(w, "data: %s\n\n\n", string(eventData))
+			flusher.Flush()
+		case <-r.Context().Done():
+			return
+		}
+	}
 }
 
 func webHandleError(w http.ResponseWriter) {
